@@ -13,7 +13,12 @@ import os
 import sys
 import pty
 import urllib.request
+import select
+import time
 from pathlib import Path
+
+# Configuration: timeout in seconds before triggering voicevox
+IDLE_TIMEOUT = 0.5
 
 
 def kobold_dir() -> Path:
@@ -104,19 +109,37 @@ def main() -> int:
     os.close(slave_fd)
 
     capture_state = False
+    captured_text = ""
+    voicevox_script = Path(__file__).resolve(
+    ).parent / "voicevox" / "voicevox.py"
 
-    with os.fdopen(master_fd) as r:
+    with os.fdopen(master_fd, mode='r', buffering=1) as r:
         for line in r:
+
             if line.startswith("Please connect to custom endpoint at"):
                 print("[KoboldCpp]", line, end="")
 
             if line.startswith("Input:"):
                 capture_state = False
+                captured_text = ""
+
             elif line.startswith("Output:"):
                 capture_state = True
 
             if capture_state:
+                captured_text = line.removeprefix("Output:").strip()
                 print("[KoboldCpp]", line, end="")
+                try:
+                    result = subprocess.run(
+                        ["python3", str(voicevox_script), "-t",
+                         captured_text, "-id", "8"],
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL,
+                        check=False,
+                    )
+                except Exception as e:
+                    print(
+                        f"[Timeout] Failed to run voicevox: {e}", file=sys.stderr)
 
 
 if __name__ == "__main__":
