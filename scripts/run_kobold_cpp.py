@@ -9,7 +9,9 @@ from __future__ import annotations
 import shutil
 import stat
 import subprocess
+import os
 import sys
+import pty
 import urllib.request
 from pathlib import Path
 
@@ -87,11 +89,26 @@ def main() -> int:
         except Exception:
             pass
 
-    # Spawn the process in the kobold_cpp directory and don't wait for it.
-    popen = subprocess.Popen(["./koboldcpp"], cwd=str(kd),
-                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, close_fds=True)
-    print(f"Spawned process PID: {popen.pid}")
-    return 0
+    master_fd, slave_fd = pty.openpty()
+
+    koboldcpp_process = subprocess.Popen(
+        ["./koboldcpp"],
+        cwd=str(kd),
+        stdin=slave_fd,
+        stdout=slave_fd,
+        stderr=subprocess.STDOUT,
+        text=True,
+        bufsize=1,
+    )
+
+    os.close(slave_fd)
+
+    with os.fdopen(master_fd) as r:
+        for line in r:
+            if line.startswith("Output:"):
+                print("[KoboldCpp]", line, end="")
+            elif line.startswith("Please connect to custom endpoint at"):
+                print("[KoboldCpp]", line, end="")
 
 
 if __name__ == "__main__":
