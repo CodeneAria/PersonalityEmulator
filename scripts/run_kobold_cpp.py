@@ -103,11 +103,19 @@ def main() -> int:
 
     os.close(slave_fd)
 
+    capture_state = False
+
     with os.fdopen(master_fd) as r:
         for line in r:
-            if line.startswith("Output:"):
+            if line.startswith("Please connect to custom endpoint at"):
                 print("[KoboldCpp]", line, end="")
-            elif line.startswith("Please connect to custom endpoint at"):
+
+            if line.startswith("Input:"):
+                capture_state = False
+            elif line.startswith("Output:"):
+                capture_state = True
+
+            if capture_state:
                 print("[KoboldCpp]", line, end="")
 
 
