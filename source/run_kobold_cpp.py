@@ -128,6 +128,9 @@ def main() -> int:
 
             if capture_state:
                 captured_text = line.removeprefix("Output:").strip()
+                if captured_text == "":
+                    continue
+
                 print("[KoboldCpp]", line, end="")
                 try:
                     result = subprocess.run(
