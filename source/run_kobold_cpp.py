@@ -132,17 +132,22 @@ def main() -> int:
                     continue
 
                 print("[KoboldCpp]", line, end="")
-                try:
-                    result = subprocess.run(
-                        ["python3", str(voicevox_script), "-t",
-                         captured_text, "-id", "8"],
-                        stdout=subprocess.DEVNULL,
-                        stderr=subprocess.DEVNULL,
-                        check=False,
-                    )
-                except Exception as e:
-                    print(
-                        f"[Timeout] Failed to run voicevox: {e}", file=sys.stderr)
+
+                texts = captured_text.split('。')
+                for text in texts:
+                    if text == '':
+                        continue
+                    try:
+                        result = subprocess.run(
+                            ["python3", str(voicevox_script), "-t",
+                             text, "-id", "8"],
+                            stdout=subprocess.DEVNULL,
+                            stderr=subprocess.DEVNULL,
+                            check=False,
+                        )
+                    except Exception as e:
+                        print(
+                            f"[Timeout] Failed to run voicevox: {e}", file=sys.stderr)
 
 
 if __name__ == "__main__":
