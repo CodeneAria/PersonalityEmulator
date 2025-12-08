@@ -19,6 +19,7 @@ from config.communcation_settings import (
     SPEAKER_ID_KASUKABE_TSUMUGI,
     VOICE_GENERATOR_PORT,
     HOSTNAME,
+    VOICE_SPEED_SCALE,
 )
 
 
@@ -69,11 +70,14 @@ class VoiceGenerator:
                 )
                 res1.raise_for_status()
 
+                query = res1.json()
+                query['speedScale'] = VOICE_SPEED_SCALE
+
                 # synthesis (API to synthesize speech from audio query)
                 res2 = requests.post(
                     SYNTHESIS_ENDPOINT,
                     params={'speaker': self.speaker_id},
-                    data=json.dumps(res1.json())
+                    data=json.dumps(query)
                 )
                 res2.raise_for_status()
 
