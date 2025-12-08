@@ -13,22 +13,26 @@ import os
 import sys
 import pty
 import urllib.request
-import select
-import time
 from pathlib import Path
 
-# Configuration: timeout in seconds before triggering voicevox
-IDLE_TIMEOUT = 0.5
+from config.communcation_settings import (
+    KOBOLDCPP_PATH,
+    KOBOLDCPP_EXE_FILE,
+    KOBOLDCPP_DOWNLOAD_URL,
+)
+
+KOBOLD_CPP_SIGNATURE = "[KoboldCpp]"
 
 
 def kobold_dir() -> Path:
     # repo root is one level above the `scripts` directory
-    return Path(__file__).resolve().parents[1] / "kobold_cpp"
+    return Path(__file__).resolve().parents[1] / KOBOLDCPP_PATH
 
 
 def download_file(url: str, dest_dir: Path) -> Path:
     dest_dir.mkdir(parents=True, exist_ok=True)
-    filename = Path(urllib.request.urlparse(url).path).name or "koboldcpp"
+    filename = Path(urllib.request.urlparse(
+        url).path).name or KOBOLDCPP_EXE_FILE
     out = dest_dir / filename
     print(f"Downloading {url} -> {out}")
     with urllib.request.urlopen(url, timeout=30) as resp:
@@ -47,9 +51,9 @@ def download_koboldcpp_default(dest: Path) -> Path:
 
     Tries `curl` first, falls back to the Python downloader.
     """
-    url = "https://github.com/LostRuins/koboldcpp/releases/latest/download/koboldcpp-linux-x64"
+    url = KOBOLDCPP_DOWNLOAD_URL
     dest.mkdir(parents=True, exist_ok=True)
-    out = dest / "koboldcpp"
+    out = dest / KOBOLDCPP_EXE_FILE
     curl = shutil.which("curl")
     if curl:
         cmd = [curl, "-fLo", str(out.name), url]
@@ -75,7 +79,7 @@ def download_koboldcpp_default(dest: Path) -> Path:
 
 def main() -> int:
     kd = kobold_dir()
-    exe = kd / "koboldcpp"
+    exe = kd / KOBOLDCPP_EXE_FILE
 
     if not exe.exists():
         print("`koboldcpp` not found in `kobold_cpp` — downloading official release.")
@@ -97,7 +101,7 @@ def main() -> int:
     master_fd, slave_fd = pty.openpty()
 
     koboldcpp_process = subprocess.Popen(
-        ["./koboldcpp"],
+        [f"./{KOBOLDCPP_EXE_FILE}"],
         cwd=str(kd),
         stdin=slave_fd,
         stdout=slave_fd,
@@ -116,7 +120,7 @@ def main() -> int:
     with os.fdopen(master_fd, mode='r', buffering=1) as r:
         for line in r:
 
-            print("[KoboldCpp]", line, end="")
+            print(f"{KOBOLD_CPP_SIGNATURE} {line}", end="")
 
             if line.startswith("Input:"):
                 capture_state = False
