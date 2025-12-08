@@ -1,12 +1,10 @@
 import requests
 import argparse
 import json
-import io
-import wave
 import os
 import sys
-import simpleaudio as sa
 from pathlib import Path
+from source.speaker.audio_speaker import AudioSpeaker
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 sys.path.append(str(Path(__file__).resolve().parents[2]))
@@ -17,6 +15,7 @@ from config.communcation_settings import (
     SYNTHESIS_ENDPOINT,
     SPEAKER_ID_KASUKABE_TSUMUGI
 )
+
 
 # Command line arguments
 parser = argparse.ArgumentParser(description='VOICEVOX API')
@@ -32,8 +31,8 @@ input_texts = args.text
 speaker = args.speaker_id
 filename = args.filename
 output_path = args.output_path
-# Create output directory if it doesn't exist
-os.makedirs(output_path, exist_ok=True)
+# Initialize AudioSpeaker with output directory
+audio_speaker = AudioSpeaker(fallback_dir=output_path)
 
 # Split text by "。" and synthesize each sentence
 texts = input_texts.split('。')
@@ -51,17 +50,7 @@ for i, text in enumerate(texts):
     res2 = requests.post(SYNTHESIS_ENDPOINT,
                          params={'speaker': speaker},
                          data=json.dumps(res1.json()))
-    # Play the obtained WAV binary (if simpleaudio is available, play in memory; otherwise, save to file)
+    # Play the obtained WAV binary using AudioSpeaker
     audio_bytes = res2.content
-    out_path = os.path.join(output_path, filename + f'_%03d.wav' % i)
-
-    try:
-        bio = io.BytesIO(audio_bytes)
-        with wave.open(bio, 'rb') as wav_read:
-            wave_obj = sa.WaveObject.from_wave_read(wav_read)
-            play_obj = wave_obj.play()
-            play_obj.wait_done()
-    except Exception as e:
-        print(f"Failed to play audio: {e}\nSaving to file instead: {out_path}")
-        with open(out_path, mode='wb') as f:
-            f.write(audio_bytes)
+    fallback_name = f"{filename}_{i:03d}"
+    audio_speaker.play(audio_bytes, fallback_filename=fallback_name)
