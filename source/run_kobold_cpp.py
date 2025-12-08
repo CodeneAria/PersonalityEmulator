@@ -15,6 +15,10 @@ import pty
 import urllib.request
 from pathlib import Path
 
+project_root = Path(__file__).resolve().parents[1]
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
 from config.communcation_settings import (
     KOBOLDCPP_PATH,
     KOBOLDCPP_EXE_FILE,
