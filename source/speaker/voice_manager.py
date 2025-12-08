@@ -16,6 +16,9 @@ sys.path.append(str(Path(__file__).resolve().parents[2]))
 from config.communcation_settings import (
     VOICE_GENERATOR_PORT,
     HOSTNAME,
+    RESPONSE_STATUS_CODE_SUCCESS,
+    RESPONSE_STATUS_CODE_NOT_FOUND,
+    RESPONSE_STATUS_CODE_ERROR,
 )
 
 
@@ -74,7 +77,7 @@ class VoiceManager:
             try:
                 response = requests.get(
                     f"{self.base_url}/queue_status", timeout=2)
-                if response.status_code == 200:
+                if response.status_code == RESPONSE_STATUS_CODE_SUCCESS:
                     print(f"VoiceGenerator started on {self.base_url}")
                     return True
             except requests.exceptions.RequestException:
@@ -114,7 +117,7 @@ class VoiceManager:
                 timeout=10
             )
 
-            if response.status_code == 200:
+            if response.status_code == RESPONSE_STATUS_CODE_SUCCESS:
                 data = response.json()
                 print(
                     f"Voice generation successful. Queue count: {data.get('count', 0)}")
@@ -135,9 +138,9 @@ class VoiceManager:
         try:
             response = requests.get(f"{self.base_url}/get_audio", timeout=10)
 
-            if response.status_code == 200:
+            if response.status_code == RESPONSE_STATUS_CODE_SUCCESS:
                 return response.content
-            elif response.status_code == 404:
+            elif response.status_code == RESPONSE_STATUS_CODE_NOT_FOUND:
                 print("Audio queue is empty.")
                 return None
             else:
@@ -156,7 +159,7 @@ class VoiceManager:
         try:
             response = requests.get(f"{self.base_url}/queue_status", timeout=5)
 
-            if response.status_code == 200:
+            if response.status_code == RESPONSE_STATUS_CODE_SUCCESS:
                 return response.json()
             else:
                 print(f"Failed to get queue status: {response.text}")
@@ -174,7 +177,7 @@ class VoiceManager:
         try:
             response = requests.post(f"{self.base_url}/clear", timeout=5)
 
-            if response.status_code == 200:
+            if response.status_code == RESPONSE_STATUS_CODE_SUCCESS:
                 print("Queue cleared successfully.")
                 return True
             else:
