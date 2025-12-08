@@ -161,23 +161,30 @@ def main() -> int:
                         continue
 
                     texts = captured_text.split('。')
-                    for text in texts:
-                        if text == '':
-                            continue
-                        try:
-                            gen_ok = vm.generate_voice(text)
-                            if not gen_ok:
-                                print(
-                                    f"[Runner] VoiceManager failed to generate voice for: {text}", file=sys.stderr)
-                                continue
+                    # Filter out empty strings
+                    texts = [text for text in texts if text.strip() != '']
 
+                    if not texts:
+                        continue
+
+                    try:
+                        # Generate voice for all texts at once
+                        gen_ok = vm.generate_voice(texts)
+                        if not gen_ok:
+                            print(
+                                f"[Runner] VoiceManager failed to generate voice for texts: {texts}", file=sys.stderr)
+                            continue
+
+                        # Play all generated audio sequentially
+                        # While playing, VoiceGenerator can generate next batch in parallel
+                        for _ in range(len(texts)):
                             played = vm.get_and_play_audio()
                             if not played:
                                 print(
-                                    f"[Runner] VoiceManager failed to play audio for: {text}", file=sys.stderr)
-                        except Exception as e:
-                            print(
-                                f"[Runner] VoiceManager error: {e}", file=sys.stderr)
+                                    f"[Runner] VoiceManager failed to play audio", file=sys.stderr)
+                    except Exception as e:
+                        print(
+                            f"[Runner] VoiceManager error: {e}", file=sys.stderr)
 
     finally:
         try:
