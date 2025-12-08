@@ -64,6 +64,7 @@ class VoiceManager:
         self.worker_thread: Optional[threading.Thread] = None
         self.stop_event = threading.Event()
         self.clear_event = threading.Event()
+        self.clear_before_count = 0  # Number of items in queue when clear was requested
 
     def start(self, wait_time: float = 2.0, start_audio_player: bool = True) -> bool:
         """Start VoiceGenerator and optionally AudioPlayer subprocesses.
@@ -226,32 +227,91 @@ class VoiceManager:
 
     def _worker_loop(self) -> None:
         """Worker thread loop for async voice generation and playback."""
+        print("[VoiceManager Worker] Worker thread started")
         while not self.stop_event.is_set():
             try:
-                # Check if clear event is set
+                # Check clear event before getting from queue
                 if self.clear_event.is_set():
-                    # Clear all queues
-                    while not self.text_queue.empty():
+                    print(
+                        "[VoiceManager Worker] Clear event detected at loop start, clearing all queues...")
+                    # Use the count recorded when clear was requested
+                    items_to_clear = self.clear_before_count
+                    print(
+                        f"[VoiceManager Worker] Will clear {items_to_clear} items from text_queue (current size: {self.text_queue.qsize()})")
+
+                    # Clear only the items that existed when clear was requested
+                    cleared_count = 0
+                    for _ in range(items_to_clear):
                         try:
                             self.text_queue.get_nowait()
+                            cleared_count += 1
                         except queue.Empty:
                             break
+
+                    remaining = self.text_queue.qsize()
+                    print(
+                        f"[VoiceManager Worker] Cleared {cleared_count} items from text_queue, {remaining} items remaining")
+                    # Clear remote queues
                     self.clear_queue()
                     self.clear_event.clear()
+                    self.clear_before_count = 0
+                    print(
+                        "[VoiceManager Worker] All queues cleared, ready for new input")
                     continue
 
-                # Get text from queue with timeout
+                # Get text from queue with timeout (check clear event frequently)
                 try:
                     text = self.text_queue.get(timeout=0.1)
+                    print(f"[VoiceManager Worker] Got text from queue: {text}")
                 except queue.Empty:
                     continue
 
                 # Generate voice
+                print(
+                    f"[VoiceManager Worker] Calling _generate_voice_sync for: {text}")
                 if not self._generate_voice_sync(text):
+                    print(
+                        f"[VoiceManager Worker] Voice generation failed for: {text}")
+                    continue
+                print(
+                    f"[VoiceManager Worker] Voice generation successful for: {text}")
+
+                # Check clear event before playing
+                if self.clear_event.is_set():
+                    print(
+                        f"[VoiceManager Worker] Clear event detected after generation, discarding audio")
+                    # Use the count recorded when clear was requested
+                    items_to_clear = self.clear_before_count
+                    print(
+                        f"[VoiceManager Worker] Will clear {items_to_clear} items from text_queue (current size: {self.text_queue.qsize()})")
+
+                    # Clear only the items that existed when clear was requested
+                    cleared_count = 0
+                    for _ in range(items_to_clear):
+                        try:
+                            self.text_queue.get_nowait()
+                            cleared_count += 1
+                        except queue.Empty:
+                            break
+
+                    remaining = self.text_queue.qsize()
+                    print(
+                        f"[VoiceManager Worker] Cleared {cleared_count} items from text_queue, {remaining} items remaining")
+                    # Clear remote queues
+                    self.clear_queue()
+                    self.clear_event.clear()
+                    self.clear_before_count = 0
+                    print(
+                        "[VoiceManager Worker] All queues cleared, ready for new input")
                     continue
 
                 # Play audio
-                self._play_audio_sync()
+                print(f"[VoiceManager Worker] Calling _play_audio_sync")
+                result = self._play_audio_sync()
+                if result:
+                    print(f"[VoiceManager Worker] Audio playback successful")
+                else:
+                    print(f"[VoiceManager Worker] Audio playback failed")
 
             except Exception as e:
                 print(f"[VoiceManager Worker] Error: {e}")
@@ -266,13 +326,19 @@ class VoiceManager:
             True if request was successful, False otherwise.
         """
         try:
+            print(
+                f"[VoiceManager] Sending POST to {self.voice_gen_url}/generate with text: {text}")
             response = requests.post(
                 f"{self.voice_gen_url}/generate",
                 json={"text": text},
                 timeout=10
             )
 
+            print(
+                f"[VoiceManager] Generate response status: {response.status_code}")
             if response.status_code == RESPONSE_STATUS_CODE_SUCCESS:
+                data = response.json()
+                print(f"[VoiceManager] Generate response data: {data}")
                 return True
             else:
                 print(f"Voice generation failed: {response.text}")
@@ -287,11 +353,17 @@ class VoiceManager:
         Returns:
             True if audio was retrieved and played successfully, False otherwise.
         """
+        print(f"[VoiceManager] Getting audio from VoiceGenerator...")
         audio_bytes = self.get_audio()
         if audio_bytes is None:
+            print(f"[VoiceManager] No audio bytes received from VoiceGenerator")
             return False
 
-        return self.play_audio(audio_bytes)
+        print(
+            f"[VoiceManager] Received {len(audio_bytes)} bytes of audio, sending to AudioPlayer...")
+        result = self.play_audio(audio_bytes)
+        print(f"[VoiceManager] AudioPlayer result: {result}")
+        return result
 
     def generate_voice(self, text: Union[str, list[str]]) -> bool:
         """Queue text for async voice generation and playback.
@@ -302,7 +374,10 @@ class VoiceManager:
         Returns:
             Always returns True (queuing is non-blocking).
         """
+        print(f"[VoiceManager] Queueing text: {text}")
         self.text_queue.put(text)
+        print(
+            f"[VoiceManager] Text queued. Queue size: {self.text_queue.qsize()}")
         return True
 
     def get_audio(self) -> Optional[bytes]:
@@ -436,7 +511,13 @@ class VoiceManager:
         This sets a flag that will cause the worker thread to clear all queues
         on its next iteration.
         """
+        current_size = self.text_queue.qsize()
+        print(
+            f"[VoiceManager] Clear requested. Current queue size: {current_size}")
+        self.clear_before_count = current_size
         self.clear_event.set()
+        print(
+            f"[VoiceManager] Clear event set, will clear {current_size} items")
 
     def get_audio_player_status(self) -> dict:
         """Get current status of AudioPlayer.

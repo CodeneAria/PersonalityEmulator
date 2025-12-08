@@ -150,11 +150,14 @@ def main() -> int:
                     break
 
                 if line.startswith("Input:"):
+                    print(f"[Runner] Detected 'Input:' line")
                     capture_state = False
                     captured_text = ""
 
                     # Clear queues when capture_state becomes False
                     if previous_capture_state and not capture_state:
+                        print(
+                            f"[Runner] Capture state changed from True to False, clearing queues...")
                         try:
                             vm.request_clear()
                         except Exception as e:
@@ -162,24 +165,31 @@ def main() -> int:
                                 f"[Runner] Failed to clear queues: {e}", file=sys.stderr)
 
                 elif line.startswith("Output:"):
+                    print(f"[Runner] Detected 'Output:' line")
                     capture_state = True
 
                 previous_capture_state = capture_state
 
                 if capture_state:
                     captured_text = line.removeprefix("Output:").strip()
+                    print(f"[Runner] Captured text: '{captured_text}'")
                     if captured_text == "":
+                        print(f"[Runner] Captured text is empty, skipping")
                         continue
 
                     texts = captured_text.split('。')
                     # Filter out empty strings
                     texts = [text for text in texts if text.strip() != '']
+                    print(f"[Runner] Split into {len(texts)} texts: {texts}")
 
                     if not texts:
+                        print(f"[Runner] No valid texts after split, skipping")
                         continue
 
                     try:
                         # Queue text for async voice generation and playback
+                        print(
+                            f"[Runner] Calling vm.generate_voice with texts: {texts}")
                         vm.generate_voice(texts)
                     except Exception as e:
                         print(
