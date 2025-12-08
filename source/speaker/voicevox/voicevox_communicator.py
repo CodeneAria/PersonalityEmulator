@@ -18,7 +18,10 @@ from config.communcation_settings import (
     SYNTHESIS_ENDPOINT,
     HOSTNAME,
     VOICEVOX_PORT,
-    SPEAKER_ID_KASUKABE_TSUMUGI,
+)
+
+from config.person_settings import (
+    SPEAKER_ID,
     VOICE_SPEED_SCALE,
 )
 
@@ -50,7 +53,7 @@ class VoicevoxCommunicator(VoiceSynthesizerInterface):
     This class handles all VOICEVOX API communication and audio generation.
     """
 
-    def __init__(self, speaker_id: int = SPEAKER_ID_KASUKABE_TSUMUGI,
+    def __init__(self, speaker_id: int = SPEAKER_ID,
                  speed_scale: float = VOICE_SPEED_SCALE,
                  user_dict_path: str | None = None):
         """Initialize VoicevoxCommunicator.
