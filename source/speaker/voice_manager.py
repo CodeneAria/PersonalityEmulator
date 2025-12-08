@@ -1,11 +1,12 @@
 """Voice manager module for controlling VoiceGenerator subprocess."""
+from __future__ import annotations
+
 import os
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 sys.path.append(str(Path(__file__).resolve().parents[2]))
 
-from __future__ import annotations
 import subprocess
 import time
 from typing import Optional, Union
@@ -143,7 +144,7 @@ class VoiceManager:
             return True
 
         audio_speaker_script = Path(
-            __file__).resolve().parent / "audio_speaker.py"
+            __file__).resolve().parent / "audio_player.py"
 
         try:
             self.audio_player_process = subprocess.Popen(
