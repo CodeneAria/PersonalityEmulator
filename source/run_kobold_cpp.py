@@ -23,6 +23,7 @@ from config.communcation_settings import (
     KOBOLDCPP_DOWNLOAD_URL,
     KOBOLDCPP_CONFIG_FILE_PATH,
 )
+from source.speaker.voice_manager import VoiceManager
 
 cfg_path = Path(KOBOLDCPP_CONFIG_FILE_PATH)
 if not cfg_path.is_absolute():
@@ -125,50 +126,68 @@ def main() -> int:
     voicevox_script = Path(__file__).resolve(
     ).parent / "speaker" / "voicevox" / "voicevox.py"
 
-    with os.fdopen(master_fd, mode='r', buffering=1) as r:
-        for line in r:
-            # Writing to stdout may fail (e.g. debugger/pipe closed, I/O errors).
-            # Protect the runner from crashing on such errors and exit loop
-            # gracefully if writes fail.
-            try:
-                print(f"{KOBOLD_CPP_SIGNATURE} {line}", end="")
-            except OSError as e:
-                # Log to stderr and stop trying to write to stdout.
+    # Initialize VoiceManager to handle voice generation/playback
+    vm = VoiceManager()
+    try:
+        vm.start()
+    except Exception as e:
+        print(f"[Runner] Failed to start VoiceManager: {e}", file=sys.stderr)
+
+    try:
+        with os.fdopen(master_fd, mode='r', buffering=1) as r:
+            for line in r:
+                # Writing to stdout may fail (e.g. debugger/pipe closed, I/O errors).
+                # Protect the runner from crashing on such errors and exit loop
+                # gracefully if writes fail.
                 try:
-                    print(
-                        f"[Runner] stdout write failed: {e}", file=sys.stderr)
-                except Exception:
-                    # If even stderr is not available, silently stop.
-                    pass
-                break
-
-            if line.startswith("Input:"):
-                capture_state = False
-                captured_text = ""
-
-            elif line.startswith("Output:"):
-                capture_state = True
-
-            if capture_state:
-                captured_text = line.removeprefix("Output:").strip()
-                if captured_text == "":
-                    continue
-
-                texts = captured_text.split('。')
-                for text in texts:
-                    if text == '':
-                        continue
+                    print(f"{KOBOLD_CPP_SIGNATURE} {line}", end="")
+                except OSError as e:
+                    # Log to stderr and stop trying to write to stdout.
                     try:
-                        result = subprocess.run(
-                            ["python3", str(voicevox_script), "-t",
-                             text, "-id", "8"],
-                            stdout=subprocess.DEVNULL,
-                            stderr=subprocess.DEVNULL,
-                            check=False,
-                        )
-                    except Exception as e:
                         print(
-                            f"[Timeout] Failed to run voicevox: {e}", file=sys.stderr)
+                            f"[Runner] stdout write failed: {e}", file=sys.stderr)
+                    except Exception:
+                        # If even stderr is not available, silently stop.
+                        pass
+                    break
+
+                if line.startswith("Input:"):
+                    capture_state = False
+                    captured_text = ""
+
+                elif line.startswith("Output:"):
+                    capture_state = True
+
+                if capture_state:
+                    captured_text = line.removeprefix("Output:").strip()
+                    if captured_text == "":
+                        continue
+
+                    texts = captured_text.split('。')
+                    for text in texts:
+                        if text == '':
+                            continue
+                        try:
+                            # Use VoiceManager to generate and play audio instead
+                            gen_ok = vm.generate_voice(text)
+                            if not gen_ok:
+                                print(
+                                    f"[Runner] VoiceManager failed to generate voice for: {text}", file=sys.stderr)
+                                continue
+
+                            played = vm.get_and_play_audio()
+                            if not played:
+                                print(
+                                    f"[Runner] VoiceManager failed to play audio for: {text}", file=sys.stderr)
+                        except Exception as e:
+                            print(
+                                f"[Runner] VoiceManager error: {e}", file=sys.stderr)
+
+    finally:
+        try:
+            vm.stop()
+        except Exception:
+            pass
 
 
 if __name__ == "__main__":
