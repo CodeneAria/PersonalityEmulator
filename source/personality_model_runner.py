@@ -17,6 +17,7 @@ from source.kobold_cpp.koboldcpp_manager import KoboldCppManager
 from source.speaker.voice_manager import VoiceManager
 
 KOBOLD_CPP_SIGNATURE = "[KoboldCpp]"
+WHISPER_TRANSCRIBE_PREFIX = "Whisper Transcribe Output:"
 
 
 class PersonalityModelRunner:
@@ -37,6 +38,49 @@ class PersonalityModelRunner:
         self.capture_state = False
         self.captured_text = ""
         self.previous_capture_state = False
+
+        self.input_text_history = []
+        self.input_time_history = []
+        self.output_text_history = []
+
+    def store_whisper_input_history(
+            self,
+            input_text: str
+    ) -> None:
+        """Store input text and timestamp in history.
+
+        Args:
+            input_text: Text input to store (format: "[HH:MM:SS] Whisper Transcribe Output: text").
+        """
+        import re
+
+        # Extract timestamp and text using regex
+        # Pattern: [HH:MM:SS] Whisper Transcribe Output: actual_text
+        match = re.match(r'\[(\d{2}:\d{2}:\d{2})\]\s*' +
+                         re.escape(WHISPER_TRANSCRIBE_PREFIX) + r'\s*(.*)', input_text)
+
+        if match:
+            timestamp = match.group(1)
+            text_content = match.group(2).strip()
+
+            if text_content:
+                self.input_time_history.append(timestamp)
+                self.input_text_history.append(text_content)
+
+    def store_output_history(
+            self,
+            output_text: str,
+            remove_prefix: str
+    ) -> None:
+        """Store output text in history.
+
+        Args:
+            output_text: Text output to store.
+            remove_prefix: Prefix to remove from output text.
+        """
+        output_text_r = output_text.removeprefix(remove_prefix).strip()
+        if output_text_r:
+            self.output_text_history.append(output_text_r)
 
     def run(self) -> int:
         """Start and run the personality model with voice synthesis.
@@ -95,6 +139,12 @@ class PersonalityModelRunner:
 
                     elif line.startswith("Output:"):
                         self.capture_state = True
+
+                        self.store_output_history(
+                            line, remove_prefix="Output:")
+
+                    if WHISPER_TRANSCRIBE_PREFIX in line:
+                        self.store_whisper_input_history(line)
 
                     self.previous_capture_state = self.capture_state
 
