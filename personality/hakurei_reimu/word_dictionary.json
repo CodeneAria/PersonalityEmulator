@@ -1,20 +1,55 @@
 {
-  "uuid-0001": {
-    "surface": "博麗",
-    "pronunciation": "はくれい",
-    "priority": 10,
-    "word_type": "PROPER_NOUN"
+  "uuid-0001":
+  {
+    "surface":"博麗霊夢",
+    "priority":10,
+    "context_id":1348,
+    "part_of_speech":"名詞",
+    "part_of_speech_detail_1":"固有名詞",
+    "part_of_speech_detail_2":"一般",
+    "part_of_speech_detail_3":"*",
+    "inflectional_type":"*",
+    "inflectional_form":"*",
+    "stem":"*",
+    "yomi":"ハクレイレイム",
+    "pronunciation":"ハクレイレイム",
+    "accent_type":3,
+    "mora_count":7,
+    "accent_associative_rule":"*"
   },
-  "uuid-0002": {
-    "surface": "霊夢",
-    "pronunciation": "れいむ",
-    "priority": 10,
-    "word_type": "PROPER_NOUN"
+  "uuid-0002":
+  {
+    "surface":"博麗",
+    "priority":10,
+    "context_id":1348,"part_of_speech":"名詞",
+    "part_of_speech_detail_1":"固有名詞",
+    "part_of_speech_detail_2":"一般",
+    "part_of_speech_detail_3":"*",
+    "inflectional_type":"*",
+    "inflectional_form":"*",
+    "stem":"*",
+    "yomi":"ハクレイ",
+    "pronunciation":"ハクレイ",
+    "accent_type":0,
+    "mora_count":4,
+    "accent_associative_rule":"*"
   },
-    "uuid-0003": {
-        "surface": "博麗霊夢",
-        "pronunciation": "はくれいれいむ",
-        "priority": 10,
-        "word_type": "PROPER_NOUN"
-    }
+  "uuid-0003":
+  {
+    "surface":"霊夢",
+    "priority":10,
+    "context_id":1348,
+    "part_of_speech":"名詞",
+    "part_of_speech_detail_1":"固有名詞",
+    "part_of_speech_detail_2":"一般",
+    "part_of_speech_detail_3":"*",
+    "inflectional_type":"*",
+    "inflectional_form":"*",
+    "stem":"*",
+    "yomi":"レイム",
+    "pronunciation":"レイム",
+    "accent_type":1,
+    "mora_count":3,
+    "accent_associative_rule":"*"
+  }
 }
