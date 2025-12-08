@@ -17,6 +17,7 @@ from config.communcation_settings import (
     SYNTHESIS_ENDPOINT,
     SPEAKER_ID_KASUKABE_TSUMUGI,
     VOICE_GENERATOR_PORT,
+    HOSTNAME,
 )
 
 
@@ -212,4 +213,4 @@ def clear_queue():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=VOICE_GENERATOR_PORT, debug=False)
+    app.run(host=HOSTNAME, port=VOICE_GENERATOR_PORT, debug=False)

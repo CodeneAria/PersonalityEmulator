@@ -18,6 +18,7 @@ from config.communcation_settings import (
     AUDIO_PLAYER_PORT,
     RESPONSE_STATUS_CODE_SUCCESS,
     RESPONSE_STATUS_CODE_ERROR,
+    HOSTNAME,
 )
 
 
@@ -169,4 +170,4 @@ def health_check():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=AUDIO_PLAYER_PORT, debug=False)
+    app.run(host=HOSTNAME, port=AUDIO_PLAYER_PORT, debug=False)
