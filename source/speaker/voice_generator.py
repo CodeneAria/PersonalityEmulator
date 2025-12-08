@@ -11,13 +11,16 @@ from typing import Union, Optional
 from flask import Flask, request, jsonify, send_file
 import io
 
+from source.speaker.voicevox.voicevox_communicator import (
+    VoiceSynthesizerInterface,
+    VoicevoxCommunicator,
+)
 from config.communcation_settings import (
     VOICE_GENERATOR_PORT,
     HOSTNAME,
 )
-from source.speaker.voicevox.voicevox_communicator import (
-    VoiceSynthesizerInterface,
-    VoicevoxCommunicator,
+from config.person_settings import (
+    WORD_DICTIONARY_PATH,
 )
 
 
@@ -34,7 +37,9 @@ class VoiceGenerator:
         Args:
             synthesizer: Voice synthesis engine to use. If None, uses VoicevoxCommunicator.
         """
-        self.synthesizer = synthesizer if synthesizer is not None else VoicevoxCommunicator()
+        # Pass the configured user dictionary path into VoicevoxCommunicator so it can import the user dict.
+        self.synthesizer = synthesizer if synthesizer is not None else VoicevoxCommunicator(
+            user_dict_path=WORD_DICTIONARY_PATH)
         self.text_queue: list[str] = []
         self.audio_data_queue: list[bytes] = []
 

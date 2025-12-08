@@ -16,6 +16,8 @@ import requests
 from config.communcation_settings import (
     AUDIO_QUERY_ENDPOINT,
     SYNTHESIS_ENDPOINT,
+    HOSTNAME,
+    VOICEVOX_PORT,
     SPEAKER_ID_KASUKABE_TSUMUGI,
     VOICE_SPEED_SCALE,
 )
@@ -49,7 +51,8 @@ class VoicevoxCommunicator(VoiceSynthesizerInterface):
     """
 
     def __init__(self, speaker_id: int = SPEAKER_ID_KASUKABE_TSUMUGI,
-                 speed_scale: float = VOICE_SPEED_SCALE):
+                 speed_scale: float = VOICE_SPEED_SCALE,
+                 user_dict_path: str | None = None):
         """Initialize VoicevoxCommunicator.
 
         Args:
@@ -58,6 +61,33 @@ class VoicevoxCommunicator(VoiceSynthesizerInterface):
         """
         self.speaker_id = speaker_id
         self.speed_scale = speed_scale
+
+        # Base URL for VOICEVOX API (constructed from HOSTNAME and VOICEVOX_PORT)
+        self._base_url = f"http://{HOSTNAME}:{VOICEVOX_PORT}"
+
+        # If a user dictionary path is provided, attempt to read and import it
+        if user_dict_path:
+            try:
+                ud_path = Path(user_dict_path).expanduser()
+                with ud_path.open('r', encoding='utf-8') as f:
+                    dict_data = json.load(f)
+
+                try:
+                    res = requests.post(
+                        f"{self._base_url}/import_user_dict",
+                        json=dict_data,
+                        headers={'Content-Type': 'application/json'},
+                        timeout=10,
+                    )
+                    res.raise_for_status()
+                    print(
+                        "[VoicevoxCommunicator] User dictionary imported successfully")
+                except requests.exceptions.RequestException as e:
+                    print(
+                        f"[VoicevoxCommunicator] Failed to import user dict: {e}")
+            except Exception as e:
+                print(
+                    f"[VoicevoxCommunicator] Failed to read user dict file '{user_dict_path}': {e}")
 
     def synthesize(self, text: str) -> Optional[bytes]:
         """Generate audio from text using VOICEVOX API.
