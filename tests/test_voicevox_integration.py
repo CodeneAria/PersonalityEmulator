@@ -13,6 +13,12 @@ Run with:
 """
 from __future__ import annotations
 
+import os
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+
 import socket
 from pathlib import Path
 import pytest
@@ -44,13 +50,15 @@ def test_voicevox_synthesize_and_play(tmp_path: Path):
     else:
         user_dict_arg = None
 
-    vc = VoicevoxCommunicator(user_dict_path=user_dict_arg) if user_dict_arg else VoicevoxCommunicator()
+    vc = VoicevoxCommunicator(
+        user_dict_path=user_dict_arg) if user_dict_arg else VoicevoxCommunicator()
 
     sample_text = "こんにちは、テストです。ユーザー辞書の効果を確認します。"
 
     audio_bytes = vc.synthesize(sample_text)
 
-    assert audio_bytes is not None and len(audio_bytes) > 0, "VOICEVOX synthesize returned no audio"
+    assert audio_bytes is not None and len(
+        audio_bytes) > 0, "VOICEVOX synthesize returned no audio"
 
     out_file = tmp_path / "voicevox_test.wav"
     out_file.write_bytes(audio_bytes)
