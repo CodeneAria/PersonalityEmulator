@@ -6,21 +6,21 @@ import wave
 import os
 import simpleaudio as sa
 
-'''
-参考コマンド:
-python voicevox.py -id 8 -t 本当にラズベリーパイでリアルタイムに喋れるんですか？
-'''
-
-# VOICEVOXをインストールしたPCのホスト名を指定してください
-HOSTNAME = 'localhost'
+from config.communcation_settings import (
+    HOSTNAME,
+    VOICEVOX_PORT,
+    AUDIO_QUERY_ENDPOINT,
+    SYNTHESIS_ENDPOINT,
+    SPEAKER_ID_KASUKABE_TSUMUGI
+)
 
 # コマンド引数
 parser = argparse.ArgumentParser(description='VOICEVOX API')
-parser.add_argument('-t', '--text', type=str, required=True, help='読み上げるテ>キスト')
-parser.add_argument('-id', '--speaker_id', type=int, default=2, help='話者ID')
+parser.add_argument('-t', '--text', type=str, required=True,)
+parser.add_argument('-id', '--speaker_id', type=int, default=2)
 parser.add_argument('-f', '--filename', type=str,
-                    default='voicevox', help='ファ>イル名')
-parser.add_argument('-o', '--output_path', type=str, default='.', help='出力パス名')
+                    default='voicevox')
+parser.add_argument('-o', '--output_path', type=str, default='.')
 
 # コマンド引数分析
 args = parser.parse_args()
@@ -41,10 +41,10 @@ for i, text in enumerate(texts):
         continue
 
     # audio_query (音声合成用のクエリを作成するAPI)
-    res1 = requests.post('http://' + HOSTNAME + ':50021/audio_query',
+    res1 = requests.post(AUDIO_QUERY_ENDPOINT,
                          params={'text': text, 'speaker': speaker})
     # synthesis (音声合成するAPI)
-    res2 = requests.post('http://' + HOSTNAME + ':50021/synthesis',
+    res2 = requests.post(SYNTHESIS_ENDPOINT,
                          params={'speaker': speaker},
                          data=json.dumps(res1.json()))
     # 取得した WAV バイナリを再生（simpleaudio があればメモリ再生、なければファイルに保存）
