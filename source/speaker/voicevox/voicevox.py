@@ -14,7 +14,7 @@ from config.communcation_settings import (
     SPEAKER_ID_KASUKABE_TSUMUGI
 )
 
-# コマンド引数
+# Command line arguments
 parser = argparse.ArgumentParser(description='VOICEVOX API')
 parser.add_argument('-t', '--text', type=str, required=True,)
 parser.add_argument('-id', '--speaker_id', type=int, default=2)
@@ -22,32 +22,32 @@ parser.add_argument('-f', '--filename', type=str,
                     default='voicevox')
 parser.add_argument('-o', '--output_path', type=str, default='.')
 
-# コマンド引数分析
+# Parse command line arguments
 args = parser.parse_args()
 input_texts = args.text
 speaker = args.speaker_id
 filename = args.filename
 output_path = args.output_path
-# 出力パスを作成（存在しない場合）
+# Create output directory if it doesn't exist
 os.makedirs(output_path, exist_ok=True)
 
-# 「 。」で文章を区切り１行ずつ音声合成させる
+# Split text by "。" and synthesize each sentence
 texts = input_texts.split('。')
 
-# 音声合成処理のループ
+# Loop for speech synthesis processing
 for i, text in enumerate(texts):
-    # 文字列が空の場合は処理しない
+    # Skip if the string is empty
     if text == '':
         continue
 
-    # audio_query (音声合成用のクエリを作成するAPI)
+    # audio_query (API to create a query for speech synthesis)
     res1 = requests.post(AUDIO_QUERY_ENDPOINT,
                          params={'text': text, 'speaker': speaker})
-    # synthesis (音声合成するAPI)
+    # synthesis (API to synthesize speech from audio query)
     res2 = requests.post(SYNTHESIS_ENDPOINT,
                          params={'speaker': speaker},
                          data=json.dumps(res1.json()))
-    # 取得した WAV バイナリを再生（simpleaudio があればメモリ再生、なければファイルに保存）
+    # Play the obtained WAV binary (if simpleaudio is available, play in memory; otherwise, save to file)
     audio_bytes = res2.content
     out_path = os.path.join(output_path, filename + f'_%03d.wav' % i)
 
@@ -58,6 +58,6 @@ for i, text in enumerate(texts):
             play_obj = wave_obj.play()
             play_obj.wait_done()
     except Exception as e:
-        print(f"再生に失敗しました: {e}\n代わりにファイルへ保存します: {out_path}")
+        print(f"Failed to play audio: {e}\nSaving to file instead: {out_path}")
         with open(out_path, mode='wb') as f:
             f.write(audio_bytes)
