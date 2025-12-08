@@ -1,14 +1,14 @@
-import requests
-import argparse
-import json
 import os
 import sys
 from pathlib import Path
-from source.speaker.audio_speaker import AudioSpeaker
-
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 sys.path.append(str(Path(__file__).resolve().parents[2]))
 sys.path.append(str(Path(__file__).resolve().parents[3]))
+
+import requests
+import argparse
+import json
+from source.speaker.audio_speaker import AudioSpeaker
 
 from config.communcation_settings import (
     AUDIO_QUERY_ENDPOINT,
