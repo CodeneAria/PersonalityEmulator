@@ -2,13 +2,13 @@
   "uuid-0001": {
     "surface": "博麗",
     "pronunciation": "はくれい",
-    "priority": 5,
+    "priority": 10,
     "word_type": "PROPER_NOUN"
   },
   "uuid-0002": {
     "surface": "霊夢",
     "pronunciation": "れいむ",
-    "priority": 5,
+    "priority": 10,
     "word_type": "PROPER_NOUN"
   },
     "uuid-0003": {
