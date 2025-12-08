@@ -13,3 +13,7 @@ KOBOLDCPP_PATH = "./kobold_cpp"
 KOBOLDCPP_EXE_FILE = "koboldcpp"
 KOBOLDCPP_DOWNLOAD_URL = "https://github.com/LostRuins/koboldcpp/releases/latest/download/koboldcpp-linux-x64"
 KOBOLDCPP_CONFIG_FILE_PATH = "./kobold_cpp/config/starter_jp_voice_input.kcppt"
+
+# Speaker process
+VOICEVOX_MANAGER_PORT = 50100
+AUDIOPLAYER_PORT = 50101
