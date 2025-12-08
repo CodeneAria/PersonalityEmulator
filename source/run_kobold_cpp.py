@@ -123,10 +123,7 @@ def main() -> int:
 
     capture_state = False
     captured_text = ""
-    voicevox_script = Path(__file__).resolve(
-    ).parent / "speaker" / "voicevox" / "voicevox.py"
 
-    # Initialize VoiceManager to handle voice generation/playback
     vm = VoiceManager()
     try:
         vm.start()
@@ -168,7 +165,6 @@ def main() -> int:
                         if text == '':
                             continue
                         try:
-                            # Use VoiceManager to generate and play audio instead
                             gen_ok = vm.generate_voice(text)
                             if not gen_ok:
                                 print(
