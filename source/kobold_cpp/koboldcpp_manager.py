@@ -25,6 +25,10 @@ from config.communcation_settings import (
     KOBOLDCPP_CONFIG_FILE_PATH,
 )
 
+from config.person_settings import (
+    STORY_SETTINGS_PATH,
+)
+
 
 class KoboldCppManager:
     """Manager class for KoboldCpp process.
@@ -162,7 +166,8 @@ class KoboldCppManager:
         master_fd, slave_fd = pty.openpty()
 
         koboldcpp_process = subprocess.Popen(
-            [f"./{KOBOLDCPP_EXE_FILE}", "--config", str(self.cfg_path)],
+            [f"./{KOBOLDCPP_EXE_FILE}", "--config",
+                str(self.cfg_path), "--preloadstory", str(STORY_SETTINGS_PATH)],
             cwd=str(self.kobold_dir),
             stdin=slave_fd,
             stdout=slave_fd,
