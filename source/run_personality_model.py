@@ -1,9 +1,13 @@
-"""Minimal runner for koboldcpp.
+"""
+Main runner script for the Personality Emulator that integrates
+ KoboldCpp AI model with voice synthesis.
 
-Behavior (simplified per user request):
-- If `kobold_cpp/koboldcpp` does not exist, download the official release.
-- Spawn `./koboldcpp` in the `kobold_cpp` directory and do not wait.
-- Process output and manage voice generation.
+This module manages the lifecycle of a KoboldCpp process, captures its text output,
+and converts the generated text into speech using a VoiceManager. It reads the output
+from KoboldCpp in real-time, identifies when the AI model is generating responses
+(marked by "Output:" prefix), and queues sentences (split by Japanese periods '。')
+for text-to-speech conversion.
+
 """
 from __future__ import annotations
 
