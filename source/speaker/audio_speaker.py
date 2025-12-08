@@ -4,10 +4,20 @@ from __future__ import annotations
 import io
 import wave
 import os
+import sys
 from pathlib import Path
 from typing import Optional
 
 import simpleaudio as sa
+from flask import Flask, request, jsonify
+
+sys.path.append(str(Path(__file__).resolve().parents[2]))
+
+from config.communcation_settings import (
+    AUDIO_PLAYER_PORT,
+    RESPONSE_STATUS_CODE_SUCCESS,
+    RESPONSE_STATUS_CODE_ERROR,
+)
 
 
 class AudioSpeaker:
@@ -84,3 +94,78 @@ class AudioSpeaker:
             results.append(success)
 
         return results
+
+
+# Flask app for HTTP server
+app = Flask(__name__)
+audio_speaker = AudioSpeaker()
+is_playing = False
+
+
+@app.route('/play', methods=['POST'])
+def play_audio():
+    """Endpoint to play audio from binary data.
+
+    Request:
+        Binary WAV data in request body.
+
+    Response JSON format:
+        {"status": "success"} or {"status": "error", "message": "..."}
+    """
+    global is_playing
+
+    if is_playing:
+        return jsonify({
+            "status": "error",
+            "message": "Already playing audio"
+        }), 400
+
+    try:
+        audio_bytes = request.data
+
+        if not audio_bytes:
+            return jsonify({
+                "status": "error",
+                "message": "No audio data provided"
+            }), 400
+
+        is_playing = True
+        success = audio_speaker.play(audio_bytes)
+        is_playing = False
+
+        return jsonify({
+            "status": "success",
+            "played": success
+        }), RESPONSE_STATUS_CODE_SUCCESS
+    except Exception as e:
+        is_playing = False
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), RESPONSE_STATUS_CODE_ERROR
+
+
+@app.route('/status', methods=['GET'])
+def get_status():
+    """Endpoint to check if audio is currently playing.
+
+    Response JSON format:
+        {"is_playing": boolean}
+    """
+    return jsonify({
+        "is_playing": is_playing
+    }), RESPONSE_STATUS_CODE_SUCCESS
+
+
+@app.route('/health', methods=['GET'])
+def health_check():
+    """Endpoint for health check.
+
+    Response JSON format:
+        {"status": "ok"}
+    """
+    return jsonify({"status": "ok"}), RESPONSE_STATUS_CODE_SUCCESS
+
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=AUDIO_PLAYER_PORT, debug=False)
