@@ -21,7 +21,13 @@ from config.communcation_settings import (
     KOBOLDCPP_PATH,
     KOBOLDCPP_EXE_FILE,
     KOBOLDCPP_DOWNLOAD_URL,
+    KOBOLDCPP_CONFIG_FILE_PATH,
 )
+
+cfg_path = Path(KOBOLDCPP_CONFIG_FILE_PATH)
+if not cfg_path.is_absolute():
+    cfg_path = Path(__file__).resolve().parents[1] / cfg_path
+cfg_path = cfg_path.resolve()
 
 KOBOLD_CPP_SIGNATURE = "[KoboldCpp]"
 
@@ -103,7 +109,7 @@ def main() -> int:
     master_fd, slave_fd = pty.openpty()
 
     koboldcpp_process = subprocess.Popen(
-        [f"./{KOBOLDCPP_EXE_FILE}"],
+        [f"./{KOBOLDCPP_EXE_FILE}", "--config", str(cfg_path)],
         cwd=str(kd),
         stdin=slave_fd,
         stdout=slave_fd,
@@ -121,8 +127,20 @@ def main() -> int:
 
     with os.fdopen(master_fd, mode='r', buffering=1) as r:
         for line in r:
-
-            print(f"{KOBOLD_CPP_SIGNATURE} {line}", end="")
+            # Writing to stdout may fail (e.g. debugger/pipe closed, I/O errors).
+            # Protect the runner from crashing on such errors and exit loop
+            # gracefully if writes fail.
+            try:
+                print(f"{KOBOLD_CPP_SIGNATURE} {line}", end="")
+            except OSError as e:
+                # Log to stderr and stop trying to write to stdout.
+                try:
+                    print(
+                        f"[Runner] stdout write failed: {e}", file=sys.stderr)
+                except Exception:
+                    # If even stderr is not available, silently stop.
+                    pass
+                break
 
             if line.startswith("Input:"):
                 capture_state = False
