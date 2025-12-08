@@ -1,17 +1,18 @@
 """Audio playback module using simpleaudio."""
+import os
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+sys.path.append(str(Path(__file__).resolve().parents[2]))
+
 from __future__ import annotations
 
 import io
 import wave
-import os
-import sys
-from pathlib import Path
 from typing import Optional
 
 import simpleaudio as sa
 from flask import Flask, request, jsonify
-
-sys.path.append(str(Path(__file__).resolve().parents[2]))
 
 from config.communcation_settings import (
     AUDIO_PLAYER_PORT,
@@ -20,7 +21,7 @@ from config.communcation_settings import (
 )
 
 
-class AudioSpeaker:
+class AudioPlayer:
     """Class for playing audio bytes using simpleaudio.
 
     This class handles audio playback from binary data (audio_bytes),
@@ -28,7 +29,7 @@ class AudioSpeaker:
     """
 
     def __init__(self, fallback_dir: Optional[str | Path] = None):
-        """Initialize AudioSpeaker.
+        """Initialize AudioPlayer.
 
         Args:
             fallback_dir: Directory to save audio files if playback fails.
@@ -98,7 +99,7 @@ class AudioSpeaker:
 
 # Flask app for HTTP server
 app = Flask(__name__)
-audio_speaker = AudioSpeaker()
+audio_speaker = AudioPlayer()
 is_playing = False
 
 

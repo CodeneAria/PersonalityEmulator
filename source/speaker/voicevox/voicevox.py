@@ -8,7 +8,7 @@ sys.path.append(str(Path(__file__).resolve().parents[3]))
 import requests
 import argparse
 import json
-from source.speaker.audio_speaker import AudioSpeaker
+from source.speaker.audio_player import AudioPlayer
 
 from config.communcation_settings import (
     AUDIO_QUERY_ENDPOINT,
@@ -31,8 +31,8 @@ input_texts = args.text
 speaker = args.speaker_id
 filename = args.filename
 output_path = args.output_path
-# Initialize AudioSpeaker with output directory
-audio_speaker = AudioSpeaker(fallback_dir=output_path)
+# Initialize AudioPlayer with output directory
+audio_speaker = AudioPlayer(fallback_dir=output_path)
 
 # Split text by "。" and synthesize each sentence
 texts = input_texts.split('。')
@@ -50,7 +50,7 @@ for i, text in enumerate(texts):
     res2 = requests.post(SYNTHESIS_ENDPOINT,
                          params={'speaker': speaker},
                          data=json.dumps(res1.json()))
-    # Play the obtained WAV binary using AudioSpeaker
+    # Play the obtained WAV binary using AudioPlayer
     audio_bytes = res2.content
     fallback_name = f"{filename}_{i:03d}"
     audio_speaker.play(audio_bytes, fallback_filename=fallback_name)
