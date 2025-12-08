@@ -167,7 +167,7 @@ class KoboldCppManager:
 
         koboldcpp_process = subprocess.Popen(
             [f"./{KOBOLDCPP_EXE_FILE}", "--config",
-                str(self.cfg_path), "--preloadstory", str(STORY_SETTINGS_PATH)],
+                str(self.cfg_path), "--preloadstory", f"./{STORY_SETTINGS_PATH}"],
             cwd=str(self.kobold_dir),
             stdin=slave_fd,
             stdout=slave_fd,
