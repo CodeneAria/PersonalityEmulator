@@ -123,6 +123,7 @@ def main() -> int:
 
     capture_state = False
     captured_text = ""
+    previous_capture_state = False
 
     vm = VoiceManager()
     try:
@@ -152,8 +153,18 @@ def main() -> int:
                     capture_state = False
                     captured_text = ""
 
+                    # Clear queues when capture_state becomes False
+                    if previous_capture_state and not capture_state:
+                        try:
+                            vm.request_clear()
+                        except Exception as e:
+                            print(
+                                f"[Runner] Failed to clear queues: {e}", file=sys.stderr)
+
                 elif line.startswith("Output:"):
                     capture_state = True
+
+                previous_capture_state = capture_state
 
                 if capture_state:
                     captured_text = line.removeprefix("Output:").strip()
@@ -168,20 +179,8 @@ def main() -> int:
                         continue
 
                     try:
-                        # Generate voice for all texts at once
-                        gen_ok = vm.generate_voice(texts)
-                        if not gen_ok:
-                            print(
-                                f"[Runner] VoiceManager failed to generate voice for texts: {texts}", file=sys.stderr)
-                            continue
-
-                        # Play all generated audio sequentially
-                        # While playing, VoiceGenerator can generate next batch in parallel
-                        for _ in range(len(texts)):
-                            played = vm.get_and_play_audio()
-                            if not played:
-                                print(
-                                    f"[Runner] VoiceManager failed to play audio", file=sys.stderr)
+                        # Queue text for async voice generation and playback
+                        vm.generate_voice(texts)
                     except Exception as e:
                         print(
                             f"[Runner] VoiceManager error: {e}", file=sys.stderr)

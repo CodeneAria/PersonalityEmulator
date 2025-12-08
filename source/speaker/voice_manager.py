@@ -9,6 +9,8 @@ sys.path.append(str(Path(__file__).resolve().parents[2]))
 
 import subprocess
 import time
+import threading
+import queue
 from typing import Optional, Union
 import requests
 
@@ -57,6 +59,12 @@ class VoiceManager:
         self.port = voice_gen_port
         self.process = self.voice_gen_process
 
+        # Async processing
+        self.text_queue: queue.Queue = queue.Queue()
+        self.worker_thread: Optional[threading.Thread] = None
+        self.stop_event = threading.Event()
+        self.clear_event = threading.Event()
+
     def start(self, wait_time: float = 2.0, start_audio_player: bool = True) -> bool:
         """Start VoiceGenerator and optionally AudioPlayer subprocesses.
 
@@ -78,6 +86,13 @@ class VoiceManager:
             if not audio_player_success:
                 self.stop()  # Stop VoiceGenerator if AudioPlayer fails
                 return False
+
+        # Start worker thread
+        self.stop_event.clear()
+        self.clear_event.clear()
+        self.worker_thread = threading.Thread(
+            target=self._worker_loop, daemon=True)
+        self.worker_thread.start()
 
         return True
 
@@ -180,6 +195,12 @@ class VoiceManager:
 
     def stop(self) -> None:
         """Stop VoiceGenerator and AudioPlayer subprocesses."""
+        # Stop worker thread
+        self.stop_event.set()
+        if self.worker_thread is not None and self.worker_thread.is_alive():
+            self.worker_thread.join(timeout=5)
+            self.worker_thread = None
+
         # Stop VoiceGenerator
         if self.voice_gen_process is not None:
             self.voice_gen_process.terminate()
@@ -203,8 +224,40 @@ class VoiceManager:
             self.audio_player_process = None
             print("AudioPlayer stopped.")
 
-    def generate_voice(self, text: Union[str, list[str]]) -> bool:
-        """Send text to VoiceGenerator for voice generation.
+    def _worker_loop(self) -> None:
+        """Worker thread loop for async voice generation and playback."""
+        while not self.stop_event.is_set():
+            try:
+                # Check if clear event is set
+                if self.clear_event.is_set():
+                    # Clear all queues
+                    while not self.text_queue.empty():
+                        try:
+                            self.text_queue.get_nowait()
+                        except queue.Empty:
+                            break
+                    self.clear_queue()
+                    self.clear_event.clear()
+                    continue
+
+                # Get text from queue with timeout
+                try:
+                    text = self.text_queue.get(timeout=0.1)
+                except queue.Empty:
+                    continue
+
+                # Generate voice
+                if not self._generate_voice_sync(text):
+                    continue
+
+                # Play audio
+                self._play_audio_sync()
+
+            except Exception as e:
+                print(f"[VoiceManager Worker] Error: {e}")
+
+    def _generate_voice_sync(self, text: Union[str, list[str]]) -> bool:
+        """Send text to VoiceGenerator for voice generation (synchronous).
 
         Args:
             text: Single text string or list of text strings.
@@ -220,9 +273,6 @@ class VoiceManager:
             )
 
             if response.status_code == RESPONSE_STATUS_CODE_SUCCESS:
-                data = response.json()
-                print(
-                    f"Voice generation successful. Queue count: {data.get('count', 0)}")
                 return True
             else:
                 print(f"Voice generation failed: {response.text}")
@@ -230,6 +280,30 @@ class VoiceManager:
         except requests.exceptions.RequestException as e:
             print(f"Failed to communicate with VoiceGenerator: {e}")
             return False
+
+    def _play_audio_sync(self) -> bool:
+        """Get audio and play it synchronously.
+
+        Returns:
+            True if audio was retrieved and played successfully, False otherwise.
+        """
+        audio_bytes = self.get_audio()
+        if audio_bytes is None:
+            return False
+
+        return self.play_audio(audio_bytes)
+
+    def generate_voice(self, text: Union[str, list[str]]) -> bool:
+        """Queue text for async voice generation and playback.
+
+        Args:
+            text: Single text string or list of text strings.
+
+        Returns:
+            Always returns True (queuing is non-blocking).
+        """
+        self.text_queue.put(text)
+        return True
 
     def get_audio(self) -> Optional[bytes]:
         """Get audio data from VoiceGenerator.
@@ -348,7 +422,6 @@ class VoiceManager:
             response = requests.post(f"{self.voice_gen_url}/clear", timeout=5)
 
             if response.status_code == RESPONSE_STATUS_CODE_SUCCESS:
-                print("Queue cleared successfully.")
                 return True
             else:
                 print(f"Failed to clear queue: {response.text}")
@@ -356,6 +429,14 @@ class VoiceManager:
         except requests.exceptions.RequestException as e:
             print(f"Failed to communicate with VoiceGenerator: {e}")
             return False
+
+    def request_clear(self) -> None:
+        """Request to clear all queues (async).
+
+        This sets a flag that will cause the worker thread to clear all queues
+        on its next iteration.
+        """
+        self.clear_event.set()
 
     def get_audio_player_status(self) -> dict:
         """Get current status of AudioPlayer.
