@@ -69,18 +69,18 @@ class PersonalityModelRunner:
 
     def store_output_history(
             self,
-            output_text: str,
-            remove_prefix: str
+            output_texts: list[str]
     ) -> None:
         """Store output text in history.
 
         Args:
-            output_text: Text output to store.
-            remove_prefix: Prefix to remove from output text.
+            output_texts: List of text outputs to store.
         """
-        output_text_r = output_text.removeprefix(remove_prefix).strip()
-        if output_text_r:
-            self.output_text_history.append(output_text_r)
+        # Remove newlines and add '。' if not already ending with it
+        processed_texts = [text.replace('\n', '').replace('\r', '') if text.endswith(
+            '。') else text.replace('\n', '').replace('\r', '') + '。' for text in output_texts]
+        combined_text = ''.join(processed_texts)
+        self.output_text_history.append(combined_text)
 
     def run(self) -> int:
         """Start and run the personality model with voice synthesis.
@@ -140,9 +140,6 @@ class PersonalityModelRunner:
                     elif line.startswith("Output:"):
                         self.capture_state = True
 
-                        self.store_output_history(
-                            line, remove_prefix="Output:")
-
                     if WHISPER_TRANSCRIBE_PREFIX in line:
                         self.store_whisper_input_history(line)
 
@@ -160,6 +157,8 @@ class PersonalityModelRunner:
 
                         if not texts:
                             continue
+
+                        self.store_output_history(texts)
 
                         try:
                             # Queue each sentence separately so the worker will
