@@ -13,8 +13,6 @@ sys.path.append(str(Path(__file__).resolve().parents[2]))
 sys.path.append(str(Path(__file__).resolve().parents[3]))
 
 from config.communcation_settings import (
-    HOSTNAME,
-    VOICEVOX_PORT,
     AUDIO_QUERY_ENDPOINT,
     SYNTHESIS_ENDPOINT,
     SPEAKER_ID_KASUKABE_TSUMUGI
