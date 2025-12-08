@@ -42,6 +42,7 @@ class PersonalityModelRunner:
         self.input_text_history = []
         self.input_time_history = []
         self.output_text_history = []
+        self.output_time_history = []
 
     def store_whisper_input_history(
             self,
@@ -81,6 +82,12 @@ class PersonalityModelRunner:
             '。') else text.replace('\n', '').replace('\r', '') + '。' for text in output_texts]
         combined_text = ''.join(processed_texts)
         self.output_text_history.append(combined_text)
+
+        if self.input_time_history:
+            value = self.input_time_history[-1]
+        else:
+            value = ""
+        self.output_time_history.append(value)
 
     def run(self) -> int:
         """Start and run the personality model with voice synthesis.
