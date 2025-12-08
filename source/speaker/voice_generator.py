@@ -7,14 +7,16 @@ sys.path.append(str(Path(__file__).resolve().parents[2]))
 
 from __future__ import annotations
 import json
-from pathlib import Path
 from typing import Union
 import requests
+from flask import Flask, request, jsonify, send_file
+import io
 
 from config.communcation_settings import (
     AUDIO_QUERY_ENDPOINT,
     SYNTHESIS_ENDPOINT,
     SPEAKER_ID_KASUKABE_TSUMUGI,
+    VOICE_GENERATOR_PORT,
 )
 
 
@@ -130,3 +132,84 @@ class VoiceGenerator:
             True if queues are empty, False otherwise.
         """
         return len(self.audio_data_queue) == 0
+
+
+# Flask app for HTTP server
+app = Flask(__name__)
+voice_generator = VoiceGenerator()
+
+
+@app.route('/generate', methods=['POST'])
+def generate_voice():
+    """Endpoint to generate voice from text.
+
+    Request JSON format:
+        {"text": "string"} or {"text": ["string1", "string2", ...]}
+
+    Response JSON format:
+        {"status": "success", "count": number_of_generated_audio}
+    """
+    try:
+        data = request.get_json()
+        if not data or 'text' not in data:
+            return jsonify({"status": "error", "message": "Missing 'text' field"}), 400
+
+        text = data['text']
+        voice_generator.generate_push_voice(text)
+
+        return jsonify({
+            "status": "success",
+            "count": len(voice_generator)
+        }), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route('/get_audio', methods=['GET'])
+def get_audio():
+    """Endpoint to get the oldest audio data from queue.
+
+    Response:
+        WAV binary data or JSON error message if queue is empty.
+    """
+    result = voice_generator.pop_audio()
+    if result is None:
+        return jsonify({"status": "error", "message": "Queue is empty"}), 404
+
+    text, audio_bytes = result
+
+    # Return WAV binary data
+    return send_file(
+        io.BytesIO(audio_bytes),
+        mimetype='audio/wav',
+        as_attachment=True,
+        download_name='voice.wav'
+    )
+
+
+@app.route('/queue_status', methods=['GET'])
+def queue_status():
+    """Endpoint to get current queue status.
+
+    Response JSON format:
+        {"count": number_of_items, "is_empty": boolean}
+    """
+    return jsonify({
+        "count": len(voice_generator),
+        "is_empty": voice_generator.is_empty()
+    }), 200
+
+
+@app.route('/clear', methods=['POST'])
+def clear_queue():
+    """Endpoint to clear all queues.
+
+    Response JSON format:
+        {"status": "success"}
+    """
+    voice_generator.clear_queues()
+    return jsonify({"status": "success"}), 200
+
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=VOICE_GENERATOR_PORT, debug=False)
