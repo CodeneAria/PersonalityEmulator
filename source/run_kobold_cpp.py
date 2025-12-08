@@ -179,8 +179,10 @@ def main() -> int:
                         continue
 
                     try:
-                        # Queue text for async voice generation and playback
-                        vm.generate_voice(texts)
+                        # Queue each sentence separately so the worker will
+                        # generate and play them one-by-one.
+                        for t in texts:
+                            vm.generate_voice(t)
                     except Exception as e:
                         print(
                             f"[Runner] VoiceManager error: {e}", file=sys.stderr)
