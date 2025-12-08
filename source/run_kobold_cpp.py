@@ -111,13 +111,12 @@ def main() -> int:
     capture_state = False
     captured_text = ""
     voicevox_script = Path(__file__).resolve(
-    ).parent / "voicevox" / "voicevox.py"
+    ).parent / "speaker" / "voicevox" / "voicevox.py"
 
     with os.fdopen(master_fd, mode='r', buffering=1) as r:
         for line in r:
 
-            if line.startswith("Please connect to custom endpoint at"):
-                print("[KoboldCpp]", line, end="")
+            print("[KoboldCpp]", line, end="")
 
             if line.startswith("Input:"):
                 capture_state = False
@@ -130,8 +129,6 @@ def main() -> int:
                 captured_text = line.removeprefix("Output:").strip()
                 if captured_text == "":
                     continue
-
-                print("[KoboldCpp]", line, end="")
 
                 texts = captured_text.split('。')
                 for text in texts:
