@@ -10,6 +10,7 @@ sys.path.append(str(Path(__file__).resolve().parents[2]))
 import io
 import wave
 from typing import Optional
+import multiprocessing
 
 import simpleaudio as sa
 from flask import Flask, request, jsonify
@@ -20,6 +21,28 @@ from config.communcation_settings import (
     RESPONSE_STATUS_CODE_ERROR,
     HOSTNAME,
 )
+
+SAVE_WAV_ON_FAILURE = False
+
+
+def _play_worker(audio_bytes: bytes, result_queue: multiprocessing.Queue) -> None:
+    """Worker run in a separate process to perform WAV playback.
+
+    Puts a single boolean into `result_queue`: True on success, False on error.
+    """
+    try:
+        bio = io.BytesIO(audio_bytes)
+        with wave.open(bio, 'rb') as wav_read:
+            wave_obj = sa.WaveObject.from_wave_read(wav_read)
+            play_obj = wave_obj.play()
+            play_obj.wait_done()
+        result_queue.put(True)
+    except Exception:
+        # On any error report failure to the parent and exit
+        try:
+            result_queue.put(False)
+        except Exception:
+            pass
 
 
 class AudioPlayer:
@@ -53,23 +76,45 @@ class AudioPlayer:
         Returns:
             True if audio was played successfully, False if saved to file.
         """
-        try:
-            bio = io.BytesIO(audio_bytes)
-            with wave.open(bio, 'rb') as wav_read:
-                wave_obj = sa.WaveObject.from_wave_read(wav_read)
-                play_obj = wave_obj.play()
-                play_obj.wait_done()
+        # Run playback in a separate process to isolate audio playback
+        def _start_play_process(data: bytes) -> bool:
+            """Start a subprocess to play `data` and return the worker result.
+
+            Uses a multiprocessing.Queue to receive a boolean success flag
+            from the worker process.
+            """
+            result_queue: multiprocessing.Queue = multiprocessing.Queue()
+            proc = multiprocessing.Process(
+                target=_play_worker, args=(data, result_queue), daemon=True
+            )
+            proc.start()
+
+            # Wait for process to finish playback
+            proc.join()
+
+            try:
+                # Try to get result (True/False) from worker
+                res = result_queue.get_nowait()
+                return bool(res)
+            except Exception:
+                return False
+
+        success = _start_play_process(audio_bytes)
+
+        if success:
             return True
-        except Exception as e:
-            # Fallback: save to file
+
+        # Fallback: save to file
+        if SAVE_WAV_ON_FAILURE:
             filename = fallback_filename or "audio_output"
             out_path = self.fallback_dir / f"{filename}.wav"
             print(
-                f"Failed to play audio: {e}\nSaving to file instead: {out_path}")
+                f"Failed to play audio in subprocess. Saving to file instead: {out_path}")
 
             with open(out_path, mode='wb') as f:
                 f.write(audio_bytes)
-            return False
+
+        return False
 
     def play_multiple(
         self,
