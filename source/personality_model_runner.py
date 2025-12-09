@@ -16,8 +16,10 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 from source.kobold_cpp.koboldcpp_manager import KoboldCppManager
 from source.speaker.voice_manager import VoiceManager
 
-KOBOLD_CPP_SIGNATURE = "[KoboldCpp]"
-WHISPER_TRANSCRIBE_PREFIX = "Whisper Transcribe Output:"
+from config.person_settings import (
+    KOBOLD_CPP_SIGNATURE,
+    WHISPER_TRANSCRIBE_PREFIX,
+)
 
 
 class PersonalityModelRunner:

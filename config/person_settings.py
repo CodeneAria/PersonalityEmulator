@@ -5,11 +5,16 @@ SPEAKER_ID_KASUKABE_TSUMUGI = 8
 SPEAKER_ID_HAKUREI_REIMU = SPEAKER_ID_KASUKABE_TSUMUGI
 VOICE_SPEED_SCALE_HAKUREI_REIMU = 1.2
 
-WORD_DICTIONARY_PATH_HAKUREI_REIMU = "personality/hakurei_reimu/word_dictionary.json"
-STORY_SETTINGS_PATH_HAKUREI_REIMU = "personality/hakurei_reimu/story_settings.json"
+WORD_DICTIONARY_PATH_HAKUREI_REIMU = "./personality/hakurei_reimu/word_dictionary.json"
+STORY_SETTINGS_PATH_HAKUREI_REIMU = "./personality/hakurei_reimu/story_settings.json"
 
 # Personality settings
 SPEAKER_ID = SPEAKER_ID_HAKUREI_REIMU
 VOICE_SPEED_SCALE = VOICE_SPEED_SCALE_HAKUREI_REIMU
 WORD_DICTIONARY_PATH = WORD_DICTIONARY_PATH_HAKUREI_REIMU
 STORY_SETTINGS_PATH = STORY_SETTINGS_PATH_HAKUREI_REIMU
+
+# KoboldCpp
+KOBOLD_CPP_CONFIG_FILE_PATH = "./kobold_cpp/config/starter_jp_voice_input.kcppt"
+KOBOLD_CPP_SIGNATURE = "[KoboldCpp]"
+WHISPER_TRANSCRIBE_PREFIX = "Whisper Transcribe Output:"

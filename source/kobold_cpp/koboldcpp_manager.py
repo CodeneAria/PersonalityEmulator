@@ -27,7 +27,15 @@ from config.communcation_settings import (
 
 from config.person_settings import (
     STORY_SETTINGS_PATH,
+    KOBOLD_CPP_CONFIG_FILE_PATH,
 )
+
+from config.person_settings import (
+    KOBOLD_CPP_SIGNATURE,
+)
+
+STORY_SETTINGS_ABSOLUTE_PATH = str(Path(
+    STORY_SETTINGS_PATH).resolve())
 
 
 class KoboldCppManager:
@@ -151,6 +159,54 @@ class KoboldCppManager:
 
         return True
 
+    def set_story_to_koboldcpp_config(self) -> None:
+        """
+        Set the story settings path in the KoboldCpp config file.
+        """
+        with open(KOBOLD_CPP_CONFIG_FILE_PATH, "r", encoding="utf-8") as f:
+            config_data = f.read()
+
+        config_data = config_data.replace(
+            "\"preloadstory\": null,", f"\"preloadstory\": \"{STORY_SETTINGS_ABSOLUTE_PATH}\",")
+
+        with open(KOBOLD_CPP_CONFIG_FILE_PATH, "w", encoding="utf-8") as f:
+            f.write(config_data)
+
+    def reset_story_to_koboldcpp_config(self) -> None:
+        """
+        Reset the story settings path in the KoboldCpp config file to null.
+        """
+        with open(KOBOLD_CPP_CONFIG_FILE_PATH, "r", encoding="utf-8") as f:
+            config_data = f.read()
+
+        config_data = config_data.replace(
+            f"\"preloadstory\": \"{STORY_SETTINGS_ABSOLUTE_PATH}\",", "\"preloadstory\": null,")
+
+        with open(KOBOLD_CPP_CONFIG_FILE_PATH, "w", encoding="utf-8") as f:
+            f.write(config_data)
+
+    def wait_for_koboldcpp_startup(self, master_fd: int) -> None:
+        try:
+            dup_fd = os.dup(master_fd)
+            try:
+                with os.fdopen(dup_fd, mode='r', buffering=1) as r:
+                    for line in r:
+                        try:
+                            print(f"{KOBOLD_CPP_SIGNATURE} {line}", end="")
+
+                            if "Please connect to custom endpoint at " in line:
+                                break
+                        except Exception:
+                            # Keep trying until we find the marker or EOF
+                            continue
+            except Exception as e:
+                print(
+                    f"[KoboldCppManager] Monitoring read error: {e}", file=sys.stderr)
+
+        except Exception as e:
+            print(
+                f"[KoboldCppManager] Failed to duplicate master fd: {e}", file=sys.stderr)
+
     def start_koboldcpp(self) -> Tuple[int, int, subprocess.Popen]:
         """Start KoboldCpp process with PTY.
 
@@ -165,9 +221,10 @@ class KoboldCppManager:
 
         master_fd, slave_fd = pty.openpty()
 
+        self.set_story_to_koboldcpp_config()
+
         koboldcpp_process = subprocess.Popen(
-            [f"./{KOBOLDCPP_EXE_FILE}", "--config",
-                str(self.cfg_path), "--preloadstory", f"./{STORY_SETTINGS_PATH}"],
+            [f"./{KOBOLDCPP_EXE_FILE}", "--config", str(self.cfg_path)],
             cwd=str(self.kobold_dir),
             stdin=slave_fd,
             stdout=slave_fd,
@@ -175,5 +232,9 @@ class KoboldCppManager:
             text=True,
             bufsize=1,
         )
+
+        self.wait_for_koboldcpp_startup(master_fd)
+
+        self.reset_story_to_koboldcpp_config()
 
         return master_fd, slave_fd, koboldcpp_process
