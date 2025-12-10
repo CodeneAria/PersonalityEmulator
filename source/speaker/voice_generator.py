@@ -10,6 +10,7 @@ sys.path.append(str(Path(__file__).resolve().parents[2]))
 from typing import Union, Optional
 from flask import Flask, request, jsonify, send_file
 import io
+import re
 
 from source.speaker.voicevox.voicevox_communicator import (
     VoiceSynthesizerInterface,
@@ -37,11 +38,26 @@ class VoiceGenerator:
         Args:
             synthesizer: Voice synthesis engine to use. If None, uses VoicevoxCommunicator.
         """
-        # Pass the configured user dictionary path into VoicevoxCommunicator so it can import the user dict.
+
         self.synthesizer = synthesizer if synthesizer is not None else VoicevoxCommunicator(
             user_dict_path=WORD_DICTIONARY_PATH)
         self.text_queue: list[str] = []
         self.audio_data_queue: list[bytes] = []
+
+    @staticmethod
+    def _strip_bracket_contents(text: str) -> str:
+        """Remove substrings enclosed in (), （）, or [] (repeats until none remain)."""
+        if not text:
+            return text
+
+        pattern = re.compile(r'[\(\（\[][^)\]）]*?[\)\]）]')
+        prev = None
+        s = text
+
+        while prev != s:
+            prev = s
+            s = pattern.sub('', s)
+        return s.strip()
 
     def generate_push_voice(self, text: Union[str, list[str]]) -> None:
         """Generate voice audio from text and store in queues.
@@ -53,23 +69,22 @@ class VoiceGenerator:
         Args:
             text: Single text string or list of text strings to convert to voice.
         """
-        # Convert single string to list for uniform processing
+
         if isinstance(text, str):
             text_list = [text]
         else:
             text_list = text
 
-        # Process each text
         for txt in text_list:
-            # Skip empty strings
             if not txt or txt.strip() == "":
                 continue
 
-            # Use synthesizer to generate audio
-            audio_bytes = self.synthesizer.synthesize(txt)
+            clean_txt = self._strip_bracket_contents(txt)
+            text_to_synthesize = clean_txt if clean_txt else txt
+
+            audio_bytes = self.synthesizer.synthesize(text_to_synthesize)
 
             if audio_bytes is not None:
-                # Store text and audio data
                 self.text_queue.append(txt)
                 self.audio_data_queue.append(audio_bytes)
             else:
@@ -170,7 +185,6 @@ def get_audio():
 
     text, audio_bytes = result
 
-    # Return WAV binary data
     return send_file(
         io.BytesIO(audio_bytes),
         mimetype='audio/wav',
