@@ -15,6 +15,7 @@ WORD_DICTIONARY_PATH = WORD_DICTIONARY_PATH_HAKUREI_REIMU
 STORY_SETTINGS_PATH = STORY_SETTINGS_PATH_HAKUREI_REIMU
 
 # KoboldCpp
-KOBOLD_CPP_CONFIG_FILE_PATH = "./kobold_cpp/config/starter_jp_voice_input.kcppt"
+KOBOLD_CPP_CONFIG_FILE_PATH = "./kobold_cpp/config/gemma_mm_kotoba_whisper.kcppt"
+# KOBOLD_CPP_CONFIG_FILE_PATH = "./kobold_cpp/config/elyza_jp_kotoba_whisper.kcppt"
 KOBOLD_CPP_SIGNATURE = "[KoboldCpp]"
 WHISPER_TRANSCRIBE_PREFIX = "Whisper Transcribe Output:"

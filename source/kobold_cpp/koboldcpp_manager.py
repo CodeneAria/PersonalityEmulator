@@ -22,16 +22,12 @@ from config.communcation_settings import (
     KOBOLDCPP_PATH,
     KOBOLDCPP_EXE_FILE,
     KOBOLDCPP_DOWNLOAD_URL,
-    KOBOLDCPP_CONFIG_FILE_PATH,
-)
-
-from config.person_settings import (
-    STORY_SETTINGS_PATH,
-    KOBOLD_CPP_CONFIG_FILE_PATH,
 )
 
 from config.person_settings import (
     KOBOLD_CPP_SIGNATURE,
+    STORY_SETTINGS_PATH,
+    KOBOLD_CPP_CONFIG_FILE_PATH
 )
 
 STORY_SETTINGS_ABSOLUTE_PATH = str(Path(
@@ -64,7 +60,7 @@ class KoboldCppManager:
         Returns:
             Absolute path to the config file.
         """
-        cfg_path = Path(KOBOLDCPP_CONFIG_FILE_PATH)
+        cfg_path = Path(KOBOLD_CPP_CONFIG_FILE_PATH)
         if not cfg_path.is_absolute():
             cfg_path = Path(__file__).resolve().parents[2] / cfg_path
         return cfg_path.resolve()
