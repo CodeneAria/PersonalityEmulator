@@ -301,18 +301,41 @@ class VoiceManager:
             print(f"Failed to communicate with VoiceGenerator: {e}")
             return False
 
+    def stop_audio_playback(self) -> bool:
+        try:
+            response = requests.post(
+                f"{self.audio_player_url}/stop", timeout=2)
+            return response.status_code == RESPONSE_STATUS_CODE_SUCCESS
+        except:
+            return False
+
     def _play_audio_sync(self) -> bool:
         """Get audio and play it synchronously.
 
         Returns:
             True if audio was retrieved and played successfully, False otherwise.
         """
+        if self.stop_event.is_set() or self.clear_event.is_set():
+            return False
+
         audio_bytes = self.get_audio()
         if audio_bytes is None:
             return False
 
-        result = self.play_audio(audio_bytes)
-        return result
+        play_thread = threading.Thread(
+            target=self.play_audio,
+            args=(audio_bytes,),
+            daemon=True
+        )
+        play_thread.start()
+
+        while play_thread.is_alive():
+            if self.stop_event.is_set() or self.clear_event.is_set():
+                self.stop_audio_playback()
+                return False
+            time.sleep(0.05)
+
+        return True
 
     def generate_voice(self, text: Union[str, list[str]]) -> bool:
         """Queue text for async voice generation and playback.

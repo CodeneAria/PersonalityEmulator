@@ -147,6 +147,7 @@ class AudioPlayer:
 app = Flask(__name__)
 audio_speaker = AudioPlayer()
 is_playing = False
+current_play_process: Optional[multiprocessing.Process] = None
 
 
 @app.route('/play', methods=['POST'])
@@ -159,7 +160,7 @@ def play_audio():
     Response JSON format:
         {"status": "success"} or {"status": "error", "message": "..."}
     """
-    global is_playing
+    global is_playing, current_play_process
 
     if is_playing:
         return jsonify({
@@ -177,8 +178,24 @@ def play_audio():
             }), 400
 
         is_playing = True
-        success = audio_speaker.play(audio_bytes)
+
+        # Modified to capture the process reference
+        result_queue: multiprocessing.Queue = multiprocessing.Queue()
+        proc = multiprocessing.Process(
+            target=_play_worker, args=(audio_bytes, result_queue), daemon=True
+        )
+        current_play_process = proc
+        proc.start()
+        proc.join()
+
+        try:
+            res = result_queue.get_nowait()
+            success = bool(res)
+        except Exception:
+            success = False
+
         is_playing = False
+        current_play_process = None
 
         return jsonify({
             "status": "success",
@@ -186,6 +203,7 @@ def play_audio():
         }), RESPONSE_STATUS_CODE_SUCCESS
     except Exception as e:
         is_playing = False
+        current_play_process = None
         return jsonify({
             "status": "error",
             "message": str(e)
@@ -212,6 +230,41 @@ def health_check():
         {"status": "ok"}
     """
     return jsonify({"status": "ok"}), RESPONSE_STATUS_CODE_SUCCESS
+
+
+@app.route('/stop', methods=['POST'])
+def stop():
+    """Endpoint to stop audio playback.
+
+    Response JSON format:
+        {"status": "success"} or {"status": "error", "message": "..."}
+    """
+    global is_playing, current_play_process
+
+    if not is_playing:
+        return jsonify({
+            "status": "error",
+            "message": "No audio is currently playing"
+        }), 400
+
+    # Force terminate the playback process
+    if current_play_process is not None and current_play_process.is_alive():
+        current_play_process.terminate()
+        current_play_process.join(timeout=0.1)
+
+        # If still alive after terminate, kill it
+        if current_play_process.is_alive():
+            current_play_process.kill()
+            current_play_process.join()
+
+        current_play_process = None
+
+    is_playing = False
+
+    return jsonify({
+        "status": "success",
+        "message": "Audio playback stopped"
+    }), RESPONSE_STATUS_CODE_SUCCESS
 
 
 if __name__ == '__main__':
