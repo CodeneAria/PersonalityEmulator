@@ -14,7 +14,7 @@ echo "Activating virtual environment"
 echo "Upgrading pip, setuptools, wheel"
 python -m pip install --upgrade pip setuptools wheel
 
-echo "Installing runtime dependencies: requests Flask simpleaudio"
+echo "Installing runtime dependencies"
 pip install --no-input requests Flask simpleaudio pytest pyyaml
 
 echo "Setup complete. Activate environment with: source $VENV_DIR/bin/activate"
