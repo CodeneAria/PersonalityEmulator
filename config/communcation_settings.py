@@ -6,7 +6,7 @@ AUDIO_QUERY_ENDPOINT = f"http://{HOSTNAME}:{VOICEVOX_PORT}/audio_query"
 SYNTHESIS_ENDPOINT = f"http://{HOSTNAME}:{VOICEVOX_PORT}/synthesis"
 
 # KoboldCpp
-KOBOLDCPP_PORT = 5001
+KOBOLDCPP_PORT = 50030
 KOBOLDCPP_PATH = "./kobold_cpp"
 KOBOLDCPP_EXE_FILE = "koboldcpp"
 KOBOLDCPP_DOWNLOAD_URL = "https://github.com/LostRuins/koboldcpp/releases/latest/download/koboldcpp-linux-x64"

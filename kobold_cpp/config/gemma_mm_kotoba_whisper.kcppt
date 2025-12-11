@@ -1,8 +1,8 @@
 {
 	"model": [],
 	"model_param": "https://huggingface.co/ggml-org/gemma-3-4b-it-GGUF/resolve/main/gemma-3-4b-it-Q4_K_M.gguf",
-	"port": 5001,
-	"port_param": 5001,
+	"port": 50030,
+	"port_param": 50030,
 	"host": "",
 	"launch": true,
 	"config": null,
