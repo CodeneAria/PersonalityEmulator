@@ -53,13 +53,16 @@ def test_voicevox_synthesize_and_play(tmp_path: Path):
     vc = VoicevoxCommunicator(
         user_dict_path=user_dict_arg) if user_dict_arg else VoicevoxCommunicator()
 
-    sample_text = "こんにちは、テストです。ユーザー辞書の効果を確認します。"
+    sample_text = "こんにちは、私は博麗霊夢です。そのくらい、あなたがやりなさいよ。"
 
     audio_bytes = vc.synthesize(sample_text)
 
     assert audio_bytes is not None and len(
         audio_bytes) > 0, "VOICEVOX synthesize returned no audio"
 
+    tmp_path = Path("./temp_voicevox_test_output")
+    if not tmp_path.exists():
+        tmp_path.mkdir(parents=True, exist_ok=True)
     out_file = tmp_path / "voicevox_test.wav"
     out_file.write_bytes(audio_bytes)
 
@@ -84,3 +87,7 @@ def test_voicevox_synthesize_and_play(tmp_path: Path):
         (output_dir / "voicevox_test.wav").write_bytes(audio_bytes)
     except Exception:
         pass
+
+
+if __name__ == "__main__":
+    test_voicevox_synthesize_and_play(Path("./temp_test_output"))
