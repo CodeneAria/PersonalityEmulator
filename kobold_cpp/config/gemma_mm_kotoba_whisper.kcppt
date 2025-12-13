@@ -11,7 +11,7 @@
 	"usevulkan": null,
 	"useclblast": null,
 	"usecpu": null,
-	"contextsize": 8192,
+	"contextsize": 16384,
 	"gpulayers": -1,
 	"tensor_split": null,
 	"version": false,
