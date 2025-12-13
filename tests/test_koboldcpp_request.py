@@ -28,6 +28,9 @@ DEFAULT_HOST = "localhost"
 DEFAULT_PORT = KOBOLDCPP_PORT
 DEFAULT_ENDPOINT = "/api/v1/generate"
 
+TEST_JSON_FILE_PATH = Path(__file__).resolve(
+).parents[1] / "document/KoboldCpp/input_format_example.json"
+
 
 def _default_request_json_path() -> Path:
     """Return the default request JSON path.
@@ -36,8 +39,7 @@ def _default_request_json_path() -> Path:
     executed from a different current working directory.
     """
 
-    repo_root = Path(__file__).resolve().parents[1]
-    return repo_root / "document/system/KoboldCpp/input_format_example.json"
+    return TEST_JSON_FILE_PATH
 
 
 def _extract_text(response_json: Any) -> Optional[str]:
@@ -109,7 +111,7 @@ def _http_post_json(url: str, payload: Dict[str, Any], timeout_s: float) -> Any:
 
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(
-        description="Send document/system/KoboldCpp/input_format_example.json to a running KoboldCpp via REST API and print its reply."
+        description="Send document/KoboldCpp/input_format_example.json to a running KoboldCpp via REST API and print its reply."
     )
     parser.add_argument(
         "--host",
@@ -131,7 +133,7 @@ def main(argv: list[str]) -> int:
         "--json",
         dest="json_path",
         default=str(_default_request_json_path()),
-        help="Path to request JSON file (default: repo-relative document/system/KoboldCpp/input_format_example.json)",
+        help="Path to request JSON file (default: repo-relative document/KoboldCpp/input_format_example.json)",
     )
     parser.add_argument(
         "--timeout",
@@ -144,7 +146,7 @@ def main(argv: list[str]) -> int:
     json_path = Path(args.json_path).expanduser()
     if not json_path.exists():
         # Backward-compatible fallback: allow running from repo root without absolute path.
-        fallback = Path("document/system/KoboldCpp/input_format_example.json")
+        fallback = TEST_JSON_FILE_PATH
         if fallback.exists():
             json_path = fallback
         else:
