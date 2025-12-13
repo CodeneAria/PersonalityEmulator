@@ -29,7 +29,7 @@ DEFAULT_PORT = KOBOLDCPP_PORT
 DEFAULT_ENDPOINT = "/api/v1/generate"
 
 TEST_JSON_FILE_PATH = Path(__file__).resolve(
-).parents[1] / "document/KoboldCpp/input_format_example.json"
+).parents[1] / "tests/KoboldCpp/input_format_example.json"
 
 
 def _default_request_json_path() -> Path:
@@ -111,7 +111,7 @@ def _http_post_json(url: str, payload: Dict[str, Any], timeout_s: float) -> Any:
 
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(
-        description="Send document/KoboldCpp/input_format_example.json to a running KoboldCpp via REST API and print its reply."
+        description=f"Send {TEST_JSON_FILE_PATH} to a running KoboldCpp via REST API and print its reply."
     )
     parser.add_argument(
         "--host",
@@ -133,7 +133,7 @@ def main(argv: list[str]) -> int:
         "--json",
         dest="json_path",
         default=str(_default_request_json_path()),
-        help="Path to request JSON file (default: repo-relative document/KoboldCpp/input_format_example.json)",
+        help=f"Path to request JSON file (default: repo-relative {TEST_JSON_FILE_PATH})",
     )
     parser.add_argument(
         "--timeout",
