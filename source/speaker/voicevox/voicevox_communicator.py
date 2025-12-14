@@ -23,6 +23,7 @@ from config.communcation_settings import (
 from config.person_settings import (
     SPEAKER_ID,
     VOICE_SPEED_SCALE,
+    VOICE_PITCH_SCALE,
 )
 
 
@@ -64,6 +65,7 @@ class VoicevoxCommunicator(VoiceSynthesizerInterface):
         """
         self.speaker_id = speaker_id
         self.speed_scale = speed_scale
+        self.pitch_scale = VOICE_PITCH_SCALE
 
         # Base URL for VOICEVOX API (constructed from HOSTNAME and VOICEVOX_PORT)
         self._base_url = f"http://{HOSTNAME}:{VOICEVOX_PORT}"
@@ -115,6 +117,7 @@ class VoicevoxCommunicator(VoiceSynthesizerInterface):
             # Step 2: Modify query with speed scale
             query = res1.json()
             query['speedScale'] = self.speed_scale
+            query['pitchScale'] = self.pitch_scale
 
             # Step 3: Synthesize speech
             res2 = requests.post(
