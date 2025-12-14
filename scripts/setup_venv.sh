@@ -8,6 +8,9 @@ VENV_DIR=${VENV_DIR:-"$SCRIPT_DIR/../../venv_python_CodeneAria"}
 echo "Creating virtual environment at '$VENV_DIR' using '$PYTHON'"
 "$PYTHON" -m venv "$VENV_DIR"
 
+sudo apt install python3-venv -y
+sudo apt install build-essential python3-dev libasound2-dev portaudio19-dev -y
+
 echo "Activating virtual environment"
 . "$VENV_DIR/bin/activate"
 
