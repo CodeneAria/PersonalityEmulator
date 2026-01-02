@@ -5,6 +5,11 @@ PYTHON=${PYTHON:-python3}
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VENV_DIR=${VENV_DIR:-"$SCRIPT_DIR/../../venv_python_CodeneAria"}
 
+if [ -n "${VENV_DIR:-}" ] && [ -d "$VENV_DIR" ]; then
+	echo "VENV_DIR '$VENV_DIR' already exists. Removing it."
+	rm -rf "$VENV_DIR"
+fi
+
 echo "Creating virtual environment at '$VENV_DIR' using '$PYTHON'"
 "$PYTHON" -m venv "$VENV_DIR"
 
