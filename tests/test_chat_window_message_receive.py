@@ -14,13 +14,13 @@ from config.communcation_settings import (
     HOSTNAME,
 )
 
-# # コンテキストマネージャを使用
+# Use context manager
 # with MessageManager() as manager:
 #     manager.send_message("System", "Hello!")
 #     messages = manager.get_messages()
 #     print(messages)
 
-# または明示的に制御
+# or manual start/stop
 manager = MessageManager()
 manager.start()
 manager.send_message("Alice", "こんにちは！")
