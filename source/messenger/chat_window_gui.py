@@ -168,6 +168,31 @@ class ChatWindow:
         # Handle window close
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
 
+        # ====== Input area (speaker, message, send button) ======
+        input_frame = tk.Frame(root)
+        input_frame.grid(row=1, column=0, padx=10, pady=(0, 10), sticky='ew')
+        input_frame.grid_rowconfigure(0, weight=1)
+        input_frame.grid_columnconfigure(1, weight=0)
+        input_frame.grid_columnconfigure(3, weight=1)
+
+        speaker_label = tk.Label(input_frame, text="話者", font=jp_font)
+        speaker_label.grid(row=0, column=0, sticky='w', padx=(0, 6))
+
+        self.speaker_entry = tk.Entry(input_frame, width=16, font=jp_font)
+        self.speaker_entry.grid(row=0, column=1, sticky='w', padx=(0, 12))
+
+        message_label = tk.Label(input_frame, text="メッセージ", font=jp_font)
+        message_label.grid(row=0, column=2, sticky='w', padx=(0, 6))
+
+        # Text: multi-line input (newline supported)
+        self.message_entry = tk.Text(
+            input_frame, font=jp_font, height=4, wrap='word')
+        self.message_entry.grid(row=0, column=3, sticky='nsew', padx=(0, 12))
+
+        send_button = tk.Button(input_frame, text="送信",
+                                font=jp_font, command=self.send_message)
+        send_button.grid(row=0, column=4, sticky='e')
+
     def add_message(self, sender: str, text: str) -> None:
         """Add a message to the chat history display.
 
@@ -212,6 +237,29 @@ class ChatWindow:
         # Scroll to bottom
         self.root.update_idletasks()
         self.canvas.yview_moveto(1.0)
+
+    def send_message(self) -> None:
+        """Send message from input area to the internal store.
+
+        If the message field is empty/whitespace, do nothing.
+        """
+        text = (self.message_entry.get('1.0', 'end-1c') or "").strip()
+        if not text:
+            return
+
+        sender = (self.speaker_entry.get() or "").strip()
+        new_msg = add_message_to_store(sender, text)
+
+        # Display immediately and prevent duplicate display by fetch loop
+        try:
+            self.last_id = max(self.last_id, int(new_msg.get("id", 0)))
+        except Exception:
+            pass
+        self.add_message(sender, text)
+
+        # Clear input for next message
+        self.message_entry.delete('1.0', tk.END)
+        self.message_entry.focus_set()
 
     def _on_canvas_configure(self, event) -> None:
         """Adjust the inner frame width to match the canvas width."""
