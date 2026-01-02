@@ -14,6 +14,8 @@ import time
 from typing import Optional
 
 from flask import Flask, request, jsonify
+from flask import send_from_directory
+
 
 from config.communcation_settings import (
     MESSENGER_PORT,
@@ -59,6 +61,11 @@ def clear_messages() -> None:
     with messages_lock:
         messages.clear()
         next_id = 1
+
+
+@flask_app.route("/")
+def index():
+    return send_from_directory("gui", "chat_window.html")
 
 
 @flask_app.route('/messages', methods=['GET'])
