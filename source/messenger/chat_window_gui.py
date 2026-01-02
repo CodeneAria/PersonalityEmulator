@@ -8,7 +8,6 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 sys.path.append(str(Path(__file__).resolve().parents[2]))
 
 import tkinter as tk
-from tkinter import scrolledtext
 from tkinter import font
 import threading
 import time
@@ -131,10 +130,31 @@ class ChatWindow:
         # 日本語フォントを指定
         jp_font = font.Font(family="Meiryo", size=10)
 
-        # 履歴表示スペース（スクロールテキスト）
-        self.history = scrolledtext.ScrolledText(
-            root, state='disabled', height=20, width=50, font=jp_font)
-        self.history.grid(row=0, column=0, padx=10, pady=10)
+        # 履歴表示スペース（スクロール可能なフレーム）
+        container = tk.Frame(root)
+        container.grid(row=0, column=0, padx=10, pady=10, sticky='nsew')
+
+        # Canvas + vertical scrollbar
+        self.canvas = tk.Canvas(container, borderwidth=0, highlightthickness=0)
+        vsb = tk.Scrollbar(container, orient='vertical',
+                           command=self.canvas.yview)
+        self.canvas.configure(yscrollcommand=vsb.set)
+        vsb.pack(side='right', fill='y')
+        self.canvas.pack(side='left', fill='both', expand=True)
+
+        # Frame inside canvas to hold message widgets
+        self.messages_frame = tk.Frame(self.canvas)
+        self.canvas_window = self.canvas.create_window(
+            (0, 0), window=self.messages_frame, anchor='nw')
+
+        # Make the messages area expand with window
+        root.grid_rowconfigure(0, weight=1)
+        root.grid_columnconfigure(0, weight=1)
+
+        # Bind configure events to update scrollregion and canvas width
+        self.messages_frame.bind('<Configure>', lambda e: self.canvas.configure(
+            scrollregion=self.canvas.bbox('all')))
+        self.canvas.bind('<Configure>', self._on_canvas_configure)
 
         # Track last displayed message id
         self.last_id = 0
@@ -155,10 +175,53 @@ class ChatWindow:
             sender: Message sender name.
             text: Message text.
         """
-        self.history.config(state='normal')
-        self.history.insert(tk.END, f"{sender}: {text}\n")
-        self.history.yview(tk.END)  # 自動スクロール
-        self.history.config(state='disabled')
+        # Create a horizontal frame for this message
+        msg_frame = tk.Frame(self.messages_frame)
+        msg_frame.pack(fill='x', pady=2, padx=2)
+
+        # Sender box (fixed width) - use Text to allow selection/copy
+        sender_txt = tk.Text(msg_frame, width=12, height=1, wrap='none', borderwidth=1,
+                             relief='groove', font=font.Font(weight='bold'))
+        sender_txt.insert('1.0', sender)
+        sender_txt.configure(state='disabled', padx=4, pady=2)
+        sender_txt.pack(side='left', padx=(0, 6))
+
+        # Message box (wrap text) - use Text to allow selection/copy
+        # Estimate height from newline count (will still wrap visually)
+        line_count = max(1, text.count('\n') + 1)
+        msg_txt = tk.Text(msg_frame, wrap='word', height=min(12, line_count), borderwidth=1,
+                          relief='ridge', font=font.Font(size=10))
+        msg_txt.insert('1.0', text)
+
+        # Make text widget effectively read-only but selectable/copiable:
+        # leave state normal but prevent modifications via key events (allow Ctrl-C)
+        def _on_key(event):
+            # Allow Ctrl-C / Ctrl-Insert for copy
+            if (event.state & 0x4) and event.keysym.lower() in ('c', 'insert'):
+                return None
+            return 'break'
+
+        msg_txt.bind('<Key>', _on_key)
+        msg_txt.bind('<Control-v>', lambda e: 'break')
+        msg_txt.bind('<Button-3>', lambda e: 'break')
+
+        # Make widget visually consistent and pack
+        msg_txt.configure(padx=4, pady=4)
+        msg_txt.pack(side='left', fill='x', expand=True)
+
+        # Scroll to bottom
+        self.root.update_idletasks()
+        self.canvas.yview_moveto(1.0)
+
+    def _on_canvas_configure(self, event) -> None:
+        """Adjust the inner frame width to match the canvas width."""
+        try:
+            canvas_width = event.width
+            # Update the window item width so the inner frame wraps correctly
+            self.canvas.itemconfig(self.canvas_window, width=canvas_width)
+        except Exception:
+            # Non-fatal; ignore layout update errors
+            pass
 
     def fetch_loop(self) -> None:
         """Poll for new messages and display them."""
