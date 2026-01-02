@@ -30,6 +30,9 @@ flask_app = Flask(__name__)
 messages: list[dict] = []
 next_id = 1
 messages_lock = threading.Lock()
+# Voice input state
+voice_input_active = False
+voice_input_lock = threading.Lock()
 
 
 def add_message_to_store(sender: str, text: str) -> dict:
@@ -60,6 +63,20 @@ def clear_messages() -> None:
     with messages_lock:
         messages.clear()
         next_id = 1
+
+
+def set_voice_input_state(active: bool) -> dict:
+    """Set the voice input active state and return the current state."""
+    global voice_input_active
+    with voice_input_lock:
+        voice_input_active = bool(active)
+        return {"active": voice_input_active}
+
+
+def get_voice_input_state() -> dict:
+    """Return current voice input active state."""
+    with voice_input_lock:
+        return {"active": voice_input_active}
 
 
 @flask_app.route("/")
@@ -109,6 +126,28 @@ def clear_messages_endpoint():
 def health_check():
     """Endpoint for health check."""
     return jsonify({"status": "ok"}), RESPONSE_STATUS_CODE_SUCCESS
+
+
+@flask_app.route('/voice_input_state', methods=['GET'])
+def voice_input_state_get():
+    """Return the voice input active state."""
+    return jsonify(get_voice_input_state()), RESPONSE_STATUS_CODE_SUCCESS
+
+
+@flask_app.route('/voice_input_state', methods=['POST'])
+def voice_input_state_post():
+    """Set the voice input active state.
+
+    Request JSON: {"active": bool}
+    Response JSON: {"active": bool}
+    """
+    try:
+        data = request.get_json() or {}
+        active = bool(data.get('active', False))
+        new_state = set_voice_input_state(active)
+        return jsonify(new_state), RESPONSE_STATUS_CODE_SUCCESS
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), RESPONSE_STATUS_CODE_ERROR
 
 
 def run_flask_server(host: str, port: int) -> None:

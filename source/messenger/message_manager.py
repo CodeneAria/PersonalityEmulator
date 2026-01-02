@@ -45,6 +45,8 @@ class MessageManager:
         self.port = port
         self.base_url = f"http://{host}:{port}"
         self.process: Optional[subprocess.Popen] = None
+        # Local cache of voice input button state
+        self.voice_input_active: bool = False
 
     def start(self, wait_time: float = 2.0) -> bool:
         """Start ChatWindow subprocess.
@@ -85,6 +87,12 @@ class MessageManager:
                     print(
                         f"ChatWindow health check failed: {response.status_code}")
                     return False
+                # initialize voice input state cache
+                try:
+                    self.update_voice_input_state()
+                except Exception:
+                    # swallow; state can be polled later
+                    pass
             except requests.exceptions.RequestException:
                 print("ChatWindow server is not responding")
                 return False
@@ -185,6 +193,41 @@ class MessageManager:
             )
             return response.status_code == RESPONSE_STATUS_CODE_SUCCESS
         except requests.exceptions.RequestException:
+            return False
+
+    def update_voice_input_state(self) -> bool:
+        """Query the ChatWindow server for current voice input state and update local cache.
+
+        Returns:
+            The current voice input state (True if active).
+        """
+        try:
+            response = requests.get(
+                f"{self.base_url}/voice_input_state", timeout=5)
+            if response.status_code == RESPONSE_STATUS_CODE_SUCCESS:
+                data = response.json() or {}
+                self.voice_input_active = bool(data.get("active", False))
+                return self.voice_input_active
+            return False
+        except requests.exceptions.RequestException as e:
+            print(f"Failed to update voice input state: {e}")
+            return False
+
+    def set_voice_input_state(self, active: bool) -> bool:
+        """Set the voice input state on the ChatWindow server and update local cache."""
+        try:
+            response = requests.post(
+                f"{self.base_url}/voice_input_state",
+                json={"active": bool(active)},
+                timeout=5
+            )
+            if response.status_code == RESPONSE_STATUS_CODE_SUCCESS:
+                data = response.json() or {}
+                self.voice_input_active = bool(data.get("active", False))
+                return True
+            return False
+        except requests.exceptions.RequestException as e:
+            print(f"Failed to set voice input state: {e}")
             return False
 
     def __enter__(self):

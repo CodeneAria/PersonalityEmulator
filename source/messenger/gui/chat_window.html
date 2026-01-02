@@ -50,9 +50,10 @@ body {
 <div id="messages"></div>
 
 <div id="input">
-  <input id="sender" placeholder="話者" style="width:120px">
+  <input id="sender" placeholder="話者 / Speaker" style="width:120px">
   <textarea id="text" rows="3" style="flex:1"></textarea>
-  <button onclick="sendMessage()">送信</button>
+   <button onclick="sendMessage()">送信 / Send</button>
+   <button id="voice-btn" style="width:96px">音声入力 / Voice Input</button>
 </div>
 
 <script>
@@ -98,6 +99,43 @@ async function sendMessage() {
 
   document.getElementById("text").value = "";
 }
+
+setInterval(fetchMessages, 500);
+
+// Voice input button: active only while pressed (mouse or touch)
+const voiceBtn = document.getElementById('voice-btn');
+let voiceActive = false;
+
+function setVoiceActive(active) {
+  if (voiceActive === active) return;
+  voiceActive = active;
+  if (voiceActive) {
+    voiceBtn.style.background = '#4CAF50';
+    voiceBtn.style.color = 'white';
+  } else {
+    voiceBtn.style.background = '';
+    voiceBtn.style.color = '';
+  }
+
+  // Notify server of state change
+  fetch('/voice_input_state', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ active: voiceActive })
+  }).catch(() => {
+    // ignore network errors for now
+  });
+}
+
+// Mouse events
+voiceBtn.addEventListener('mousedown', () => setVoiceActive(true));
+document.addEventListener('mouseup', () => setVoiceActive(false));
+voiceBtn.addEventListener('mouseleave', () => setVoiceActive(false));
+
+// Touch events for mobile
+voiceBtn.addEventListener('touchstart', (e) => { e.preventDefault(); setVoiceActive(true); }, { passive: false });
+document.addEventListener('touchend', () => setVoiceActive(false));
+document.addEventListener('touchcancel', () => setVoiceActive(false));
 
 setInterval(fetchMessages, 500);
 </script>
