@@ -13,6 +13,8 @@ sudo apt install python3-venv -y
 sudo apt install build-essential python3-dev libasound2-dev portaudio19-dev -y
 sudo apt install python3-tk -y
 
+sudo apt install -y fonts-noto-cjk
+
 echo "Activating virtual environment"
 . "$VENV_DIR/bin/activate"
 
