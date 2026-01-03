@@ -14,6 +14,9 @@ echo "Creating virtual environment at '$VENV_DIR' using '$PYTHON'"
 "$PYTHON" -m venv "$VENV_DIR"
 
 sudo apt update
+sudo apt install -y curl
+sudo apt install -y wget
+sudo apt install -y aria2
 sudo apt install python3-venv -y
 sudo apt install build-essential python3-dev libasound2-dev portaudio19-dev -y
 sudo apt install python3-tk -y

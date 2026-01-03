@@ -20,6 +20,9 @@ apt install -y -q curl \
 
 apt update -q
 
+apt install -y curl
+apt install -y wget
+apt install -y aria2
 apt install -y -q git
 apt install -y -q build-essential
 apt install -y -q cmake
