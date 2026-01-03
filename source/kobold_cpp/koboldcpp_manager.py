@@ -117,17 +117,29 @@ class KoboldCppManager:
             except subprocess.CalledProcessError as e:
                 raise RuntimeError(f"curl download failed: {e}")
         else:
-            out = self._download_file(url, self.kobold_dir)
-            return out
+            downloaded = self._download_file(url, self.kobold_dir)
+            out = downloaded
 
+        # Ensure the downloaded file is renamed to the configured executable name
+        final = self.kobold_dir / KOBOLDCPP_EXE_FILE
         try:
-            out.chmod(out.stat().st_mode | stat.S_IXUSR)
+            if out.name != final.name:
+                if final.exists():
+                    final.unlink()
+                try:
+                    out.replace(final)
+                except Exception:
+                    shutil.move(str(out), str(final))
+
+            # Ensure executable bit set
+            final.chmod(final.stat().st_mode | stat.S_IXUSR)
         except Exception:
             try:
-                subprocess.run(["chmod", "+x", str(out)], check=False)
+                subprocess.run(["chmod", "+x", str(final)], check=False)
             except Exception:
                 pass
-        return out
+
+        return final
 
     def ensure_koboldcpp_exists(self) -> bool:
         """Ensure KoboldCpp executable exists, download if necessary.
