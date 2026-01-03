@@ -2,7 +2,7 @@ version: '3'
 services:
   my_service:
     build:
-      context: ./docker_image_creation
+      context: ./
     image: pe_env:latest
     container_name: pe_env_container
     restart: always
