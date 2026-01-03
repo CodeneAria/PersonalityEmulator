@@ -1,4 +1,4 @@
-HOSTNAME = "localhost"
+HOSTNAME = "0.0.0.0"
 
 # VOICEVOX
 VOICEVOX_PORT = 50021
