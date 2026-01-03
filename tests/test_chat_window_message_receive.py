@@ -40,11 +40,7 @@ def _is_wsl() -> bool:
         return True
     if os.environ.get("WSL_INTEROP"):
         return True
-    try:
-        if "microsoft" in platform.uname().release.lower():
-            return True
-    except Exception:
-        pass
+
     return False
 
 
