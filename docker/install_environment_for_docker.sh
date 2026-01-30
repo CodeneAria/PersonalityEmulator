@@ -40,6 +40,17 @@ apt install -y -q alsa-utils
 apt install -y -q pulseaudio
 apt install -y -q fonts-noto-cjk
 
+# Install NVIDIA CUDA toolkit if an NVIDIA GPU is present
+if command -v nvidia-smi >/dev/null 2>&1 || \
+     (command -v lspci >/dev/null 2>&1 && lspci | grep -i nvidia >/dev/null 2>&1) || \
+     [ -e /dev/nvidiactl ] ; then
+    echo "NVIDIA GPU detected — installing nvidia-cuda-toolkit"
+    apt update -q
+    apt install -y -q nvidia-cuda-toolkit
+else
+    echo "No NVIDIA GPU detected — skipping nvidia-cuda-toolkit"
+fi
+
 # install python3.12
 apt install -y -q python3.12 python3.12-dev python3.12-venv
 python3 -m venv /opt/venv_python_CodeneAria
@@ -48,12 +59,5 @@ python3 -m venv /opt/venv_python_CodeneAria
 /opt/venv_python_CodeneAria/bin/pip install --upgrade setuptools
 /opt/venv_python_CodeneAria/bin/pip install requests Flask simpleaudio pytest pyyaml pytk
 apt install -y -q python3-tk
-
-## Clone repositories
-cd /opt
-mkdir CodeneAria
-cd ./CodeneAria
-
-git clone --recursive https://github.com/CodeneAria/PersonalityEmulator.git
 
 rm -rf /var/lib/apt/lists/*
