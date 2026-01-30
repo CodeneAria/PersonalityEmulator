@@ -1,10 +1,10 @@
 {
-	"name": "personality_emulator_dev_container",
-	"dockerComposeFile": [
-		"../docker/docker-compose.yml"
-	],
+	"name": "PersonalityEmulator (docker-compose)",
+	"dockerComposeFile": ["../docker/docker-compose.yml"],
 	"service": "personality_emulator_dev_service",
 	"workspaceFolder": "/workspace",
+	"shutdownAction": "stopCompose",
+	"runServices": ["personality_emulator_dev_service"],
 	"forwardPorts": [
 		50021,
 		50030,
@@ -19,5 +19,10 @@
         "ms-vscode.cpptools-extension-pack",
         "mhutchie.git-graph",
         "xaver.clang-format"
-	]
+	],
+	"settings": {
+		"terminal.integrated.shell.linux": "/bin/bash"
+	},
+	"remoteUser": "root",
+	"postStartCommand": "echo 'Container ready.'"
 }
