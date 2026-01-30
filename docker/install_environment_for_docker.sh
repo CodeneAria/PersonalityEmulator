@@ -17,31 +17,26 @@ apt install -y -q curl \
     libgtk-3-0 \
     libnss3 \
     libxss1 \
-    libasound2 \
+    libasound2t64 \
     xdg-utils \
-    unzip
-
-apt update -q
-
-apt install -y curl
-apt install -y wget
-apt install -y aria2
-apt install -y -q git
-apt install -y -q build-essential
-apt install -y -q cmake
-apt install -y -q gdb
-apt install -y -q x11-apps
-apt install -y -q xvfb
-apt install -y -q clang-format
-apt install -y -q nano
-apt install -y -q pybind11-dev
-apt install -y -q libasound2-dev
-apt install -y -q portaudio19-dev
-apt install -y -q libasound2
-apt install -y -q libsdl2-dev
-apt install -y -q alsa-utils
-apt install -y -q pulseaudio
-apt install -y -q fonts-noto-cjk
+    unzip \
+    aria2 \
+    git \
+    build-essential \
+    cmake \
+    gdb \
+    x11-apps \
+    xvfb \
+    clang-format \
+    nano \
+    pybind11-dev \
+    libasound2-dev \
+    portaudio19-dev \
+    libasound2 \
+    libsdl2-dev \
+    alsa-utils \
+    pulseaudio \
+    fonts-noto-cjk
 
 # Install NVIDIA CUDA toolkit if an NVIDIA GPU is present
 if command -v nvidia-smi >/dev/null 2>&1 || \
