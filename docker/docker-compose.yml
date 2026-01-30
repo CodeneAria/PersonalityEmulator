@@ -1,10 +1,10 @@
 version: '3'
 services:
-  my_service:
+  PersonalityEmulator_dev_service:
     build:
       context: ./
-    image: pe_env:latest
-    container_name: pe_env_container
+    image: PersonalityEmulator_dev_image:latest
+    container_name: PersonalityEmulator_dev_container
     restart: always
     stdin_open: true
     tty: true
