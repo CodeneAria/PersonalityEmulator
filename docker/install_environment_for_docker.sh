@@ -18,7 +18,6 @@ apt install -y -q \
     libgtk-3-0 \
     libnss3 \
     libxss1 \
-    libasound2t64 \
     xdg-utils \
     unzip \
     aria2 \
@@ -35,7 +34,6 @@ apt install -y -q \
     portaudio19-dev \
     libsdl2-dev \
     libportaudio2 \
-    libportaudiocpp2 \
     libpulse0 \
     alsa-utils \
     pulseaudio \

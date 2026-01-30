@@ -21,7 +21,6 @@ services:
       - /dev/snd:/dev/snd
     environment:
       - PULSE_SERVER=unix:${XDG_RUNTIME_DIR}/pulse/native
-    user: "${UID}:${GID}"
     deploy:
       resources:
         reservations:
