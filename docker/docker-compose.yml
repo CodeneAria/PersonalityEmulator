@@ -15,3 +15,10 @@ services:
       - "50050:50050"
       - "50100:50100"
       - "50101:50101"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]

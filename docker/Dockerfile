@@ -1,4 +1,4 @@
-FROM ubuntu:24.04
+FROM nvidia/cuda:12.4.1-runtime-ubuntu24.04
 
 COPY install_environment_for_docker.sh /
 
