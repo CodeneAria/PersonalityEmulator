@@ -61,8 +61,8 @@ fi
 
 if [ "$GPU_DETECTED" = true ]; then
     echo "NVIDIA GPU detected — installing nvidia-cuda-toolkit"
-    apt-get update -q
-    apt-get install -y -q nvidia-cuda-toolkit
+    apt update -q
+    apt install -y -q nvidia-cuda-toolkit
 else
     echo "No NVIDIA GPU detected — skipping nvidia-cuda-toolkit"
 fi
