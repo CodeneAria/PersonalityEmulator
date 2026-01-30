@@ -4,6 +4,8 @@ services:
       context: ./
     image: personality_emulator_dev_image:latest
     container_name: personality_emulator_dev_container
+    volumes:
+      - ..:/workspace:cached
     restart: always
     stdin_open: true
     tty: true
