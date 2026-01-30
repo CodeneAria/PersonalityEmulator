@@ -43,12 +43,26 @@ apt install -y -q \
     python3-tk
 
 # Install NVIDIA CUDA toolkit if an NVIDIA GPU is present
-if command -v nvidia-smi >/dev/null 2>&1 || \
-     (command -v lspci >/dev/null 2>&1 && lspci | grep -i nvidia >/dev/null 2>&1) || \
-     [ -e /dev/nvidiactl ] ; then
+GPU_DETECTED=false
+
+if command -v nvidia-smi >/dev/null 2>&1; then
+    GPU_DETECTED=true
+elif [ -e /dev/nvidiactl ] || [ -e /dev/nvgpu ]; then
+    GPU_DETECTED=true
+elif command -v lspci >/dev/null 2>&1; then
+    if lspci | grep -iq "nvidia"; then
+        GPU_DETECTED=true
+    fi
+elif [ -d /proc/driver/nvidia ]; then
+    GPU_DETECTED=true
+elif [ -f /usr/lib/wsl/lib/nvidia-smi ]; then
+    GPU_DETECTED=true
+fi
+
+if [ "$GPU_DETECTED" = true ]; then
     echo "NVIDIA GPU detected — installing nvidia-cuda-toolkit"
-    apt update -q
-    apt install -y -q nvidia-cuda-toolkit
+    apt-get update -q
+    apt-get install -y -q nvidia-cuda-toolkit
 else
     echo "No NVIDIA GPU detected — skipping nvidia-cuda-toolkit"
 fi
