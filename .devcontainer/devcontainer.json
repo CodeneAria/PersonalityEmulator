@@ -24,5 +24,8 @@
 		"terminal.integrated.shell.linux": "/bin/bash"
 	},
 	"remoteUser": "root",
-	"postStartCommand": "echo 'Container ready.'"
+	"postStartCommand": "echo 'Container ready.'",
+	"build": {
+		"options": ["--network=host"]
+	}
 }
