@@ -1,0 +1,19 @@
+{
+	"name": "PersonalityEmulator_Dev_Container",
+	"dockerComposeFile": [
+		"../docker/docker-compose.yml"
+	],
+	"forwardPorts": [
+		50021,
+		50030,
+		50050,
+		50100,
+		50101
+	],
+	"extensions": [
+		"ms-python.python",
+		"ms-vscode-remote.vscode-remote-extensionpack",
+		"ms-python.autopep8",
+		"mhutchie.git-graph"
+	]
+}
