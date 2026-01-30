@@ -16,7 +16,7 @@ apt install -y -q curl \
     libxss1 \
     libasound2 \
     xdg-utils \
-    unzip \
+    unzip
 
 apt update -q
 
