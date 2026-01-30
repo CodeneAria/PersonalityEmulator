@@ -33,7 +33,6 @@ apt install -y -q \
     pybind11-dev \
     libasound2-dev \
     portaudio19-dev \
-    libasound2 \
     libsdl2-dev \
     alsa-utils \
     pulseaudio \
