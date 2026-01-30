@@ -34,6 +34,9 @@ apt install -y -q \
     libasound2-dev \
     portaudio19-dev \
     libsdl2-dev \
+    libportaudio2 \
+    libportaudiocpp2 \
+    libpulse0 \
     alsa-utils \
     pulseaudio \
     fonts-noto-cjk \

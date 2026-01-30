@@ -6,6 +6,8 @@ services:
     container_name: personality_emulator_dev_container
     volumes:
       - ..:/workspace:cached
+      - ${XDG_RUNTIME_DIR}/pulse/native:${XDG_RUNTIME_DIR}/pulse/native
+      - ~/.config/pulse/cookie:/root/.config/pulse/cookie
     restart: always
     stdin_open: true
     tty: true
@@ -15,6 +17,11 @@ services:
       - "50050:50050"
       - "50100:50100"
       - "50101:50101"
+    devices:
+      - /dev/snd:/dev/snd
+    environment:
+      - PULSE_SERVER=unix:${XDG_RUNTIME_DIR}/pulse/native
+    user: "${UID}:${GID}"
     deploy:
       resources:
         reservations:
