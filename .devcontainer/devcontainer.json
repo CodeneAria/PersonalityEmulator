@@ -3,6 +3,8 @@
 	"dockerComposeFile": [
 		"../docker/docker-compose.yml"
 	],
+	"service": "personality_emulator_dev_service",
+	"workspaceFolder": "/workspace",
 	"forwardPorts": [
 		50021,
 		50030,
