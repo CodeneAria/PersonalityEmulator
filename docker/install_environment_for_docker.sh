@@ -6,7 +6,8 @@ ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
 apt update -q
 apt upgrade -y -q
 
-apt install -y -q curl \
+apt install -y -q \
+    curl \
     wget \
     gnupg \
     apt-transport-https \
@@ -36,7 +37,11 @@ apt install -y -q curl \
     libsdl2-dev \
     alsa-utils \
     pulseaudio \
-    fonts-noto-cjk
+    fonts-noto-cjk \
+    python3.12 \
+    python3.12-dev \
+    python3.12-venv \
+    python3-tk
 
 # Install NVIDIA CUDA toolkit if an NVIDIA GPU is present
 if command -v nvidia-smi >/dev/null 2>&1 || \
@@ -49,13 +54,22 @@ else
     echo "No NVIDIA GPU detected — skipping nvidia-cuda-toolkit"
 fi
 
-# install python3.12
-apt install -y -q python3.12 python3.12-dev python3.12-venv
+# install python packages in a virtual environment
 python3 -m venv /opt/venv_python_CodeneAria
 
 /opt/venv_python_CodeneAria/bin/pip install --upgrade pip
 /opt/venv_python_CodeneAria/bin/pip install --upgrade setuptools
-/opt/venv_python_CodeneAria/bin/pip install requests Flask simpleaudio pytest pyyaml pytk
-apt install -y -q python3-tk
+/opt/venv_python_CodeneAria/bin/pip install \
+    requests \
+    Flask \
+    simpleaudio \
+    pytest \
+    pyyaml \
+    pytk \
+    faster-whisper \
+    torch \
+    torchaudio \
+    pyaudio \
+    numpy
 
 rm -rf /var/lib/apt/lists/*
