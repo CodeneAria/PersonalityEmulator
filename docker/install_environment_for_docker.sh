@@ -34,6 +34,10 @@ apt install -y -q nano
 apt install -y -q pybind11-dev
 apt install -y -q libasound2-dev
 apt install -y -q portaudio19-dev
+apt install -y -q libasound2
+apt install -y -q libsdl2-dev
+apt install -y -q alsa-utils
+apt install -y -q pulseaudio
 apt install -y -q fonts-noto-cjk
 
 # install python3.12
