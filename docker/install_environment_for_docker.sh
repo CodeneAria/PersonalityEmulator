@@ -1,3 +1,6 @@
+#!/bin/bash
+set -e
+
 ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
 
 apt update -q
