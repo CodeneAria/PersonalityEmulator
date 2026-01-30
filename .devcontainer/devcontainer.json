@@ -1,5 +1,5 @@
 {
-	"name": "PersonalityEmulator_Dev_Container",
+	"name": "personality_emulator_dev_container",
 	"dockerComposeFile": [
 		"../docker/docker-compose.yml"
 	],
