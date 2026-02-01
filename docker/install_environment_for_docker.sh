@@ -61,4 +61,7 @@ python3 -m venv /opt/venv_python_CodeneAria
     pyaudio \
     numpy
 
+# install llama-cpp-python with CUDA support
+CMAKE_ARGS="-DGGML_CUDA=on" /opt/venv_python_CodeneAria/bin/pip install llama-cpp-python
+
 rm -rf /var/lib/apt/lists/*
