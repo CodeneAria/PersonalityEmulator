@@ -42,28 +42,3 @@ apt install -y -q \
     python3.12-dev \
     python3.12-venv \
     python3-tk
-
-# install python packages in a virtual environment
-python3 -m venv /opt/venv_python_CodeneAria
-
-/opt/venv_python_CodeneAria/bin/pip install --upgrade pip
-/opt/venv_python_CodeneAria/bin/pip install --upgrade setuptools
-/opt/venv_python_CodeneAria/bin/pip install \
-    requests \
-    Flask \
-    simpleaudio \
-    pytest \
-    pyyaml \
-    pytk \
-    faster-whisper \
-    torch \
-    torchaudio \
-    pyaudio \
-    numpy
-
-# install llama-cpp-python with CUDA support
-LD_LIBRARY_PATH=/usr/local/cuda/lib64/stubs:$LD_LIBRARY_PATH \
-CMAKE_ARGS="-DGGML_CUDA=on" \
-/opt/venv_python_CodeneAria/bin/pip install llama-cpp-python
-
-rm -rf /var/lib/apt/lists/*
