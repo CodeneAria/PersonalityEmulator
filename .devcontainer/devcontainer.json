@@ -5,27 +5,21 @@
 	"workspaceFolder": "/workspace",
 	"shutdownAction": "stopCompose",
 	"runServices": ["personality_emulator_dev_service"],
-	"forwardPorts": [
-		50021,
-		50030,
-		50050,
-		50100,
-		50101
-	],
-	"extensions": [
-        "ms-python.python",
-        "ms-vscode-remote.vscode-remote-extensionpack",
-        "ms-python.autopep8",
-        "ms-vscode.cpptools-extension-pack",
-        "mhutchie.git-graph",
-        "xaver.clang-format"
-	],
-	"settings": {
-		"terminal.integrated.shell.linux": "/bin/bash"
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-python.python",
+				"ms-vscode-remote.vscode-remote-extensionpack",
+				"ms-python.autopep8",
+				"ms-vscode.cpptools-extension-pack",
+				"mhutchie.git-graph",
+				"xaver.clang-format"
+			],
+			"settings": {
+				"terminal.integrated.defaultProfile.linux": "bash"
+			}
+		}
 	},
 	"remoteUser": "root",
-	"postStartCommand": "echo 'Container ready.'",
-	"build": {
-		"options": ["--network=host"]
-	}
+	"postStartCommand": "echo 'Container ready.'"
 }
