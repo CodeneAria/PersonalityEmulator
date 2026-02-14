@@ -214,8 +214,6 @@ class SpeechRecognizer:
                             text = segment.text.strip()
                             if text:
                                 self.sentence_queue.append(text)
-                                print(
-                                    f"[SpeechRecognizer] [{info.language}] Detected: {text}")
 
                     audio_buffer = []
 
