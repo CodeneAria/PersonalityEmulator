@@ -25,6 +25,7 @@ import pytest
 import subprocess
 import atexit
 import time
+import signal
 
 from source.speaker.voicevox.voicevox_communicator import VoicevoxCommunicator
 from config.communcation_settings import (
@@ -32,6 +33,8 @@ from config.communcation_settings import (
     VOICEVOX_PORT,
     USER_DICTIONARY_PATH
 )
+
+voicevox_kill_command = "pkill -f voicevox"
 
 # start voicevox in background (do not block); register cleanup at exit
 subprocess_command = f"/opt/voicevox_engine/linux-nvidia/run --host {HOSTNAME} --port {VOICEVOX_PORT}"
@@ -45,22 +48,6 @@ try:
     )
 except Exception as e:
     print(f"Error starting VOICEVOX: {e}", file=sys.stderr)
-else:
-    def _cleanup_voicevox():
-        global proc
-        if proc is None:
-            return
-        try:
-            if proc.poll() is None:
-                proc.terminate()
-                try:
-                    proc.wait(timeout=5)
-                except subprocess.TimeoutExpired:
-                    proc.kill()
-        except Exception:
-            pass
-
-    atexit.register(_cleanup_voicevox)
 
 # wait until VOICEVOX is reachable before running tests
 time.sleep(5)
@@ -72,6 +59,7 @@ try:
                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 except Exception as e:
     print(f"Error posting user dictionary to VOICEVOX: {e}", file=sys.stderr)
+    subprocess.run(voicevox_kill_command, shell=True)
 
 
 def _is_port_open(host: str, port: int, timeout: float = 2.0) -> bool:
@@ -125,7 +113,7 @@ def test_voicevox_synthesize_and_play(tmp_path: Path):
             play_obj.wait_done()
     except Exception:
         # Non-fatal: playback is optional in test environments
-        pass
+        subprocess.run(voicevox_kill_command, shell=True)
 
     # Save a copy under project output for manual inspection if desired
     try:
@@ -133,8 +121,10 @@ def test_voicevox_synthesize_and_play(tmp_path: Path):
         output_dir.mkdir(exist_ok=True)
         (output_dir / "voicevox_test.wav").write_bytes(audio_bytes)
     except Exception:
-        pass
+        subprocess.run(voicevox_kill_command, shell=True)
 
 
 if __name__ == "__main__":
     test_voicevox_synthesize_and_play(Path("./temp_test_output"))
+
+    subprocess.run(voicevox_kill_command, shell=True)
