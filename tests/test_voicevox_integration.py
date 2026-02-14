@@ -27,7 +27,7 @@ import atexit
 import time
 import signal
 
-from source.speaker.voicevox.voicevox_communicator import VoicevoxCommunicator
+from source.voice.speaker.voicevox_communicator import VoicevoxCommunicator
 from config.communcation_settings import (
     HOSTNAME,
     VOICEVOX_PORT,

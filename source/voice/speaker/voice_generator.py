@@ -13,7 +13,7 @@ from flask import Flask, request, jsonify, send_file
 import io
 import re
 
-from source.speaker.voicevox.voicevox_communicator import (
+from source.voice.speaker.voicevox_communicator import (
     VoiceSynthesizerInterface,
     VoicevoxCommunicator,
 )
