@@ -7,10 +7,10 @@ lifecycle, handles conversation history, and generates streaming text responses.
 from __future__ import annotations
 
 import sys
+from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 sys.path.append(str(Path(__file__).resolve().parents[2]))
 
-from pathlib import Path
 from typing import Optional, Generator, Callable
 import urllib.request
 import shutil
