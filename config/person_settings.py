@@ -16,7 +16,15 @@ VOICE_PITCH_SCALE = VOICE_PITCH_SCALE_HAKUREI_REIMU
 WORD_DICTIONARY_PATH = WORD_DICTIONARY_PATH_HAKUREI_REIMU
 STORY_SETTINGS_PATH = STORY_SETTINGS_PATH_HAKUREI_REIMU
 
-# KoboldCpp
+# LLM Model Settings
+PERSONALITY_CORE_SIGNATURE = "[PersonalityCore]"
+LLM_MODEL_PATH = "./llm/gemma-3-4b-it-Q4_K_M.gguf"
+LLM_N_CTX = 2048
+LLM_N_THREADS = 8
+LLM_N_GPU_LAYERS = -1
+LLM_SYSTEM_PROMPT = "あなたは優秀なアシスタントです。"
+
+# KoboldCpp (legacy - kept for backward compatibility)
 KOBOLD_CPP_CONFIG_FILE_PATH = "./kobold_cpp/config/gemma_mm_kotoba_whisper.kcppt"
 # KOBOLD_CPP_CONFIG_FILE_PATH = "./kobold_cpp/config/elyza_jp_kotoba_whisper.kcppt"
 KOBOLD_CPP_SIGNATURE = "[KoboldCpp]"
