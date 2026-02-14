@@ -3,12 +3,14 @@ Debug script to test the voice pipeline step by step.
 """
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+
 import time
 import requests
-
-sys.path.append(str(Path(__file__).resolve().parents[0]))
 
 from source.voice.voice_manager import VoiceManager
 from config.communcation_settings import (
