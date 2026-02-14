@@ -8,6 +8,7 @@ text into speech using a VoiceManager.
 from __future__ import annotations
 
 import sys
+import time
 from pathlib import Path
 from datetime import datetime
 from typing import Optional
@@ -16,6 +17,7 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 from source.core.personality_core_manager import PersonalityCoreManager
 from source.voice.voice_manager import VoiceManager
+from source.messenger.message_manager import MessageManager
 
 from config.person_settings import (
     WHISPER_TRANSCRIBE_PREFIX,
@@ -50,11 +52,13 @@ class PersonalityModelRunner:
 
         self.core_manager = PersonalityCoreManager(**core_kwargs)
         self.vm = VoiceManager()
+        self.message_manager = MessageManager()
 
         self.input_text_history: list[str] = []
         self.input_time_history: list[str] = []
         self.output_text_history: list[str] = []
         self.output_time_history: list[str] = []
+        self.processed_message_count: int = 0
 
     def store_whisper_input_history(
             self,
@@ -151,42 +155,75 @@ class PersonalityModelRunner:
             print(
                 f"[Runner] Failed to start VoiceManager: {e}", file=sys.stderr)
 
-        print("(Type 'exit' or press Ctrl-C to quit)")
+        # Start MessageManager
+        if not self.message_manager.start():
+            print("Failed to start MessageManager", file=sys.stderr)
+            return 3
+
+        print("[Runner] Browser chat window started. Waiting for messages...")
+        print("[Runner] Press Ctrl-C to quit")
 
         try:
             while self.core_manager.is_running:
-                try:
-                    user_input = input("\nYou: ")
-                except EOFError:
-                    break
+                # Poll for new messages from browser
+                messages = self.message_manager.get_messages()
 
-                if not user_input:
-                    continue
-                if user_input.strip().lower() in ("exit", "quit"):
-                    break
+                # Process only new messages
+                if len(messages) > self.processed_message_count:
+                    for i in range(self.processed_message_count, len(messages)):
+                        msg = messages[i]
+                        sender = msg.get("sender", "")
+                        text = msg.get("text", "")
 
-                # Store user input
-                self.store_input_with_timestamp(user_input)
+                        # Skip system messages or empty messages
+                        if not text or sender.lower() == "assistant":
+                            continue
 
-                # Clear voice queues for new response
-                try:
-                    self.vm.request_clear()
-                except Exception as e:
-                    print(
-                        f"[Runner] Failed to clear queues: {e}", file=sys.stderr)
+                        print(f"[Runner] Received from {sender}: {text}")
 
-                print("Assistant: ", end="", flush=True)
+                        # Check for exit command
+                        if text.strip().lower() in ("exit", "quit"):
+                            self.message_manager.send_message(
+                                "System", "Shutting down...")
+                            self.core_manager.is_running = False
+                            break
 
-                # Generate streaming response
-                try:
-                    for chunk in self.core_manager.generate_response_stream(user_input):
-                        print(chunk, end="", flush=True)
-                    print()  # Newline after response
-                except Exception as e:
-                    print(f"\n[Runner] Generation error: {e}", file=sys.stderr)
+                        # Store user input
+                        self.store_input_with_timestamp(text)
+
+                        # Clear voice queues for new response
+                        try:
+                            self.vm.request_clear()
+                        except Exception as e:
+                            print(
+                                f"[Runner] Failed to clear queues: {e}", file=sys.stderr)
+
+                        # Generate streaming response
+                        response_text = ""
+                        try:
+                            for chunk in self.core_manager.generate_response_stream(text):
+                                response_text += chunk
+
+                            # Send complete response to browser
+                            if response_text:
+                                self.message_manager.send_message(
+                                    "Assistant", response_text)
+                                print(
+                                    f"[Runner] Response sent: {response_text}")
+                        except Exception as e:
+                            error_msg = f"Error: {e}"
+                            self.message_manager.send_message(
+                                "System", error_msg)
+                            print(
+                                f"\n[Runner] Generation error: {e}", file=sys.stderr)
+
+                    self.processed_message_count = len(messages)
+
+                # Sleep briefly to avoid busy waiting
+                time.sleep(0.2)
 
         except KeyboardInterrupt:
-            print("\nInterrupted.")
+            print("\n[Runner] Interrupted.")
         finally:
             try:
                 self.core_manager.stop()
@@ -194,6 +231,10 @@ class PersonalityModelRunner:
                 pass
             try:
                 self.vm.stop()
+            except Exception:
+                pass
+            try:
+                self.message_manager.stop()
             except Exception:
                 pass
 
