@@ -231,9 +231,7 @@ class PersonalityModelRunner:
 
                 self._handle_voice_input_state(current_voice_active)
 
-                messages = self.message_manager.get_messages()
-
-                self._process_pending_messages(messages)
+                self._process_pending_messages()
 
                 # Sleep briefly to avoid busy waiting
                 time.sleep(0.2)
@@ -256,13 +254,15 @@ class PersonalityModelRunner:
 
         return 0
 
-    def _process_pending_messages(self, messages: list[dict]) -> None:
+    def _process_pending_messages(self) -> None:
         """Process new messages received from MessageManager.
 
         This handles skipping system/assistant display messages, checking for
         exit/quit commands, and forwarding user messages to
         `_process_user_input`. It also advances `self.processed_message_count`.
         """
+        messages = self.message_manager.get_messages()
+
         if len(messages) > self.processed_message_count:
             for i in range(self.processed_message_count, len(messages)):
                 msg = messages[i]
