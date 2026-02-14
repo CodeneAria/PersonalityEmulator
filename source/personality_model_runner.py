@@ -150,6 +150,10 @@ class PersonalityModelRunner:
         # Store user input
         self.store_input_with_timestamp(text)
 
+        # Display user's voice input in chat first (before assistant response)
+        if sender == "Voice":
+            self.message_manager.send_message("User (Voice)", text)
+
         # Clear voice queues for new response
         try:
             self.vm.request_clear()
@@ -158,10 +162,6 @@ class PersonalityModelRunner:
 
         # Send initial empty message to get message ID
         message_id = self.message_manager.send_message("Assistant", "")
-
-        # Also display user's voice input in chat
-        if sender == "Voice":
-            self.message_manager.send_message("User (Voice)", text)
 
         # Generate streaming response
         response_text = ""
