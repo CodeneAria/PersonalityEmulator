@@ -200,22 +200,33 @@ class PersonalityModelRunner:
                             print(
                                 f"[Runner] Failed to clear queues: {e}", file=sys.stderr)
 
+                        # Send initial empty message to get message ID
+                        message_id = self.message_manager.send_message(
+                            "Assistant", "")
+
                         # Generate streaming response
                         response_text = ""
                         try:
                             for chunk in self.core_manager.generate_response_stream(text):
                                 response_text += chunk
 
-                            # Send complete response to browser
+                                # Update message with accumulated text
+                                if message_id is not None:
+                                    self.message_manager.update_message(
+                                        message_id, response_text)
+
+                            # Log final response
                             if response_text:
-                                self.message_manager.send_message(
-                                    "Assistant", response_text)
                                 print(
-                                    f"[Runner] Response sent: {response_text}")
+                                    f"[Runner] Response completed: {response_text}")
                         except Exception as e:
                             error_msg = f"Error: {e}"
-                            self.message_manager.send_message(
-                                "System", error_msg)
+                            if message_id is not None:
+                                self.message_manager.update_message(
+                                    message_id, error_msg)
+                            else:
+                                self.message_manager.send_message(
+                                    "System", error_msg)
                             print(
                                 f"\n[Runner] Generation error: {e}", file=sys.stderr)
 

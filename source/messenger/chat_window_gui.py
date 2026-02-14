@@ -65,6 +65,24 @@ def clear_messages() -> None:
         next_id = 1
 
 
+def update_message_in_store(message_id: int, new_text: str) -> dict | None:
+    """Update a message's text by its ID.
+
+    Args:
+        message_id: The ID of the message to update.
+        new_text: The new text content.
+
+    Returns:
+        The updated message dict, or None if not found.
+    """
+    with messages_lock:
+        for msg in messages:
+            if msg["id"] == message_id:
+                msg["text"] = new_text
+                return msg.copy()
+        return None
+
+
 def set_voice_input_state(active: bool) -> dict:
     """Set the voice input active state and return the current state."""
     global voice_input_active
@@ -120,6 +138,27 @@ def clear_messages_endpoint():
     """Endpoint to clear all messages."""
     clear_messages()
     return jsonify({"status": "success"}), RESPONSE_STATUS_CODE_SUCCESS
+
+
+@flask_app.route('/messages/<int:message_id>', methods=['PATCH'])
+def update_message(message_id: int):
+    """Endpoint to update an existing message.
+
+    Request JSON format:
+        {"text": str}
+
+    Response JSON format:
+        {"id": int, "sender": str, "text": str}
+    """
+    try:
+        data = request.get_json() or {}
+        new_text = data.get('text', '')
+        updated_msg = update_message_in_store(message_id, new_text)
+        if updated_msg is None:
+            return jsonify({"status": "error", "message": "Message not found"}), 404
+        return jsonify(updated_msg), RESPONSE_STATUS_CODE_SUCCESS
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), RESPONSE_STATUS_CODE_ERROR
 
 
 @flask_app.route('/health', methods=['GET'])

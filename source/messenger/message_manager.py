@@ -125,7 +125,7 @@ class MessageManager:
         # Check if process is still alive
         return self.process.poll() is None
 
-    def send_message(self, sender: str, text: str) -> bool:
+    def send_message(self, sender: str, text: str) -> Optional[int]:
         """Send a message to the ChatWindow.
 
         Args:
@@ -133,7 +133,7 @@ class MessageManager:
             text: Message text.
 
         Returns:
-            True if message was sent successfully, False otherwise.
+            Message ID if successful, None otherwise.
         """
         try:
             response = requests.post(
@@ -141,9 +141,33 @@ class MessageManager:
                 json={"sender": sender, "text": text},
                 timeout=5
             )
-            return response.status_code == 201
+            if response.status_code == 201:
+                data = response.json()
+                return data.get("id")
+            return None
         except requests.exceptions.RequestException as e:
             print(f"Failed to send message: {e}")
+            return None
+
+    def update_message(self, message_id: int, text: str) -> bool:
+        """Update an existing message in the ChatWindow.
+
+        Args:
+            message_id: The ID of the message to update.
+            text: New message text.
+
+        Returns:
+            True if message was updated successfully, False otherwise.
+        """
+        try:
+            response = requests.patch(
+                f"{self.base_url}/messages/{message_id}",
+                json={"text": text},
+                timeout=5
+            )
+            return response.status_code == RESPONSE_STATUS_CODE_SUCCESS
+        except requests.exceptions.RequestException as e:
+            print(f"Failed to update message: {e}")
             return False
 
     def get_messages(self) -> list[dict]:

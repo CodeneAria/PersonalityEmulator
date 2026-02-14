@@ -57,33 +57,54 @@ body {
 </div>
 
 <script>
-let lastId = 0;
+let messageElements = new Map(); // Map message ID to DOM element
 
 async function fetchMessages() {
   const res = await fetch("/messages");
   const data = await res.json();
 
   for (const msg of data) {
-    if (msg.id > lastId) {
-      addMessage(msg.sender, msg.text);
-      lastId = msg.id;
+    if (messageElements.has(msg.id)) {
+      // Update existing message text if changed
+      updateMessage(msg.id, msg.text);
+    } else {
+      // Add new message
+      addMessage(msg.id, msg.sender, msg.text);
     }
   }
 }
 
-function addMessage(sender, text) {
+function addMessage(id, sender, text) {
   const div = document.createElement("div");
   div.className = "message";
+  div.dataset.messageId = id;
 
   div.innerHTML = `
     <div class="sender">${sender}</div>
     <div class="text"></div>
   `;
-  div.querySelector(".text").textContent = text;
+  const textElement = div.querySelector(".text");
+  textElement.textContent = text;
 
-  const messages = document.getElementById("messages");
-  messages.appendChild(div);
-  messages.scrollTop = messages.scrollHeight;
+  const messagesContainer = document.getElementById("messages");
+  messagesContainer.appendChild(div);
+  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+  messageElements.set(id, textElement);
+}
+
+function updateMessage(id, text) {
+  const textElement = messageElements.get(id);
+  if (textElement && textElement.textContent !== text) {
+    textElement.textContent = text;
+    
+    // Auto-scroll to bottom if user is near the bottom
+    const messagesContainer = document.getElementById("messages");
+    const isNearBottom = messagesContainer.scrollHeight - messagesContainer.scrollTop - messagesContainer.clientHeight < 100;
+    if (isNearBottom) {
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+  }
 }
 
 async function sendMessage() {
