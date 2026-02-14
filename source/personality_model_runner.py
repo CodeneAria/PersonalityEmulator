@@ -60,6 +60,9 @@ class PersonalityModelRunner:
         self.output_time_history: list[str] = []
         self.processed_message_count: int = 0
 
+        # Voice input state tracking
+        self._prev_voice_input_active: bool = False
+
     def store_whisper_input_history(
             self,
             input_text: str
@@ -134,6 +137,50 @@ class PersonalityModelRunner:
         except Exception as e:
             print(f"[Runner] VoiceManager error: {e}", file=sys.stderr)
 
+    def _process_user_input(self, text: str, sender: str = "User") -> None:
+        """Process user input text and generate LLM response.
+
+        Args:
+            text: User input text.
+            sender: Message sender name.
+        """
+        if not text or not text.strip():
+            return
+
+        # Store user input
+        self.store_input_with_timestamp(text)
+
+        # Clear voice queues for new response
+        try:
+            self.vm.request_clear()
+        except Exception as e:
+            print(f"[Runner] Failed to clear queues: {e}", file=sys.stderr)
+
+        # Send initial empty message to get message ID
+        message_id = self.message_manager.send_message("Assistant", "")
+
+        # Also display user's voice input in chat
+        if sender == "Voice":
+            self.message_manager.send_message("User (Voice)", text)
+
+        # Generate streaming response
+        response_text = ""
+        try:
+            for chunk in self.core_manager.generate_response_stream(text):
+                response_text += chunk
+
+                # Update message with accumulated text
+                if message_id is not None:
+                    self.message_manager.update_message(
+                        message_id, response_text)
+        except Exception as e:
+            error_msg = f"Error: {e}"
+            if message_id is not None:
+                self.message_manager.update_message(message_id, error_msg)
+            else:
+                self.message_manager.send_message("System", error_msg)
+            print(f"\n[Runner] Generation error: {e}", file=sys.stderr)
+
     def run(self) -> int:
         """Start and run the personality model with voice synthesis.
 
@@ -167,6 +214,35 @@ class PersonalityModelRunner:
 
         try:
             while self.core_manager.is_running:
+                # Poll voice input state from MessageManager
+                current_voice_active = self.message_manager.update_voice_input_state()
+
+                # Handle voice input state changes
+                if current_voice_active != self._prev_voice_input_active:
+                    # Update SpeechRecognizer via VoiceManager
+                    try:
+                        self.vm.set_voice_input_active(current_voice_active)
+                        if current_voice_active:
+                            print("[Runner] Voice input activated")
+                        else:
+                            print("[Runner] Voice input deactivated")
+                    except Exception as e:
+                        print(
+                            f"[Runner] Failed to update voice input state: {e}", file=sys.stderr)
+                    self._prev_voice_input_active = current_voice_active
+
+                # Poll for recognized speech (check even when voice is inactive to get queued results)
+                try:
+                    recognized_text = self.vm.get_recognized_sentence()
+                    if recognized_text and recognized_text.strip():
+                        print(
+                            f"[Runner] Voice input received: {recognized_text}")
+                        self._process_user_input(
+                            recognized_text, sender="Voice")
+                except Exception as e:
+                    print(
+                        f"[Runner] Failed to get recognized sentence: {e}", file=sys.stderr)
+
                 # Poll for new messages from browser
                 messages = self.message_manager.get_messages()
 
@@ -177,11 +253,9 @@ class PersonalityModelRunner:
                         sender = msg.get("sender", "")
                         text = msg.get("text", "")
 
-                        # Skip system messages or empty messages
-                        if not text or sender.lower() == "assistant":
+                        # Skip system messages, assistant messages, or voice input display messages
+                        if not text or sender.lower() in ("assistant", "user (voice)"):
                             continue
-
-                        # print(f"[Runner] Received from {sender}: {text}")
 
                         # Check for exit command
                         if text.strip().lower() in ("exit", "quit"):
@@ -190,44 +264,8 @@ class PersonalityModelRunner:
                             self.core_manager.is_running = False
                             break
 
-                        # Store user input
-                        self.store_input_with_timestamp(text)
-
-                        # Clear voice queues for new response
-                        try:
-                            self.vm.request_clear()
-                        except Exception as e:
-                            print(
-                                f"[Runner] Failed to clear queues: {e}", file=sys.stderr)
-
-                        # Send initial empty message to get message ID
-                        message_id = self.message_manager.send_message(
-                            "Assistant", "")
-
-                        # Generate streaming response
-                        response_text = ""
-                        try:
-                            for chunk in self.core_manager.generate_response_stream(text):
-                                response_text += chunk
-
-                                # Update message with accumulated text
-                                if message_id is not None:
-                                    self.message_manager.update_message(
-                                        message_id, response_text)
-
-                            # if response_text:
-                            #     print(
-                            #         f"[Runner] Response completed: {response_text}")
-                        except Exception as e:
-                            error_msg = f"Error: {e}"
-                            if message_id is not None:
-                                self.message_manager.update_message(
-                                    message_id, error_msg)
-                            else:
-                                self.message_manager.send_message(
-                                    "System", error_msg)
-                            print(
-                                f"\n[Runner] Generation error: {e}", file=sys.stderr)
+                        # Process user input
+                        self._process_user_input(text, sender=sender)
 
                     self.processed_message_count = len(messages)
 

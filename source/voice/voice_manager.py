@@ -355,6 +355,48 @@ class VoiceManager:
             return False
         return self.speech_recognizer_process.poll() is None
 
+    def set_voice_input_active(self, active: bool) -> bool:
+        """Set the voice input active state on SpeechRecognizer.
+
+        Args:
+            active: True to enable voice recognition, False to disable.
+
+        Returns:
+            True if successful, False otherwise.
+        """
+        if self.speech_recognizer_url is None:
+            return False
+        try:
+            response = requests.post(
+                f"{self.speech_recognizer_url}/voice_input_active",
+                json={"active": active},
+                timeout=3
+            )
+            return response.status_code == RESPONSE_STATUS_CODE_SUCCESS
+        except requests.exceptions.RequestException as e:
+            print(f"[VoiceManager] Failed to set voice input active: {e}")
+            return False
+
+    def get_recognized_sentence(self) -> Optional[str]:
+        """Get the oldest recognized sentence from SpeechRecognizer.
+
+        Returns:
+            The recognized sentence, or None if queue is empty.
+        """
+        if self.speech_recognizer_url is None:
+            return None
+        try:
+            response = requests.get(
+                f"{self.speech_recognizer_url}/get_sentence",
+                timeout=3
+            )
+            if response.status_code == RESPONSE_STATUS_CODE_SUCCESS:
+                data = response.json()
+                return data.get("text")
+            return None
+        except requests.exceptions.RequestException:
+            return None
+
     def get_user_input_sentence(self) -> Optional[str]:
         """Retrieve the latest recognized sentence from SpeechRecognizer.
            This method first tries to get the sentence via HTTP from the SpeechRecognizer.

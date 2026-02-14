@@ -9,6 +9,7 @@ sys.path.append(str(Path(__file__).resolve().parents[2]))
 sys.path.append(str(Path(__file__).resolve().parents[3]))
 
 import threading
+import time
 from typing import Optional
 import numpy as np
 import pyaudio
@@ -84,6 +85,10 @@ class SpeechRecognizer:
         self.is_running = False
         self.recognition_thread: Optional[threading.Thread] = None
 
+        # Voice input active state (controlled by UI button)
+        self.voice_input_active = False
+        self.voice_input_lock = threading.Lock()
+
     def start_speach_to_text_model(self) -> None:
         """Load and initialize Silero VAD and Faster Whisper models."""
         print("[SpeechRecognizer] Loading models...")
@@ -152,6 +157,18 @@ class SpeechRecognizer:
 
         try:
             while self.is_running:
+                # Check if voice input is active
+                with self.voice_input_lock:
+                    voice_active = self.voice_input_active
+
+                if not voice_active:
+                    # Voice input not active - clear buffer and wait
+                    if audio_buffer:
+                        audio_buffer = []
+                        is_speaking = False
+                    time.sleep(0.05)
+                    continue
+
                 # Read audio chunk
                 audio_chunk = self.stream.read(
                     self.chunk,
@@ -269,6 +286,28 @@ class SpeechRecognizer:
         """Clear the sentence queue."""
         self.sentence_queue.clear()
 
+    def set_voice_input_active(self, active: bool) -> None:
+        """Set the voice input active state.
+
+        Args:
+            active: True to enable voice recognition, False to disable.
+        """
+        with self.voice_input_lock:
+            self.voice_input_active = active
+            if active:
+                print("[SpeechRecognizer] Voice input ACTIVE - listening...")
+            else:
+                print("[SpeechRecognizer] Voice input INACTIVE - paused")
+
+    def get_voice_input_active(self) -> bool:
+        """Get the voice input active state.
+
+        Returns:
+            True if voice input is active, False otherwise.
+        """
+        with self.voice_input_lock:
+            return self.voice_input_active
+
     def is_empty(self) -> bool:
         """Check if the sentence queue is empty.
 
@@ -351,6 +390,35 @@ def clear_queue():
     """
     speech_recognizer.clear_queue()
     return jsonify({"status": "success"}), RESPONSE_STATUS_CODE_SUCCESS
+
+
+@app.route('/voice_input_active', methods=['GET'])
+def get_voice_input_active():
+    """Endpoint to get current voice input active state.
+
+    Response JSON format:
+        {"active": boolean}
+    """
+    return jsonify({"active": speech_recognizer.get_voice_input_active()}), RESPONSE_STATUS_CODE_SUCCESS
+
+
+@app.route('/voice_input_active', methods=['POST'])
+def set_voice_input_active():
+    """Endpoint to set voice input active state.
+
+    Request JSON format:
+        {"active": boolean}
+
+    Response JSON format:
+        {"active": boolean}
+    """
+    try:
+        data = request.get_json() or {}
+        active = bool(data.get('active', False))
+        speech_recognizer.set_voice_input_active(active)
+        return jsonify({"active": speech_recognizer.get_voice_input_active()}), RESPONSE_STATUS_CODE_SUCCESS
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), RESPONSE_STATUS_CODE_ERROR
 
 
 if __name__ == '__main__':
