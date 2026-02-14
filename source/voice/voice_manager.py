@@ -71,7 +71,7 @@ class VoiceManager:
         self.clear_event = threading.Event()
         self.clear_before_count = 0  # Number of items in queue when clear was requested
 
-    def start(self, wait_time: float = 2.0, start_audio_player: bool = True, start_speech_recognizer: bool = True) -> bool:
+    def start(self, wait_time: float = 5.0, start_audio_player: bool = True, start_speech_recognizer: bool = True) -> bool:
         """Start VoiceGenerator and optionally AudioPlayer subprocesses.
 
         Args:
@@ -141,20 +141,51 @@ class VoiceManager:
 
             # Check if process is still running
             if self.voice_gen_process.poll() is not None:
+                print(
+                    f"[VoiceManager] VoiceGenerator process exited with code {self.voice_gen_process.returncode}")
+                # Try to get stderr/stdout
+                try:
+                    stdout, stderr = self.voice_gen_process.communicate(
+                        timeout=1)
+                    if stderr:
+                        print(
+                            f"[VoiceManager] VoiceGenerator stderr: {stderr}")
+                    if stdout:
+                        print(
+                            f"[VoiceManager] VoiceGenerator stdout: {stdout}")
+                except Exception:
+                    pass
                 return False
 
-            # Verify server is responding
-            try:
-                response = requests.get(
-                    f"{self.voice_gen_url}/queue_status", timeout=2)
-                if response.status_code == RESPONSE_STATUS_CODE_SUCCESS:
-                    self.process = self.voice_gen_process  # Backward compatibility
-                    return True
-            except requests.exceptions.RequestException:
-                return False
+            # Verify server is responding with retries
+            print(f"[VoiceManager] Checking if VoiceGenerator is responding...")
+            max_retries = 5
+            for attempt in range(max_retries):
+                try:
+                    response = requests.get(
+                        f"{self.voice_gen_url}/queue_status", timeout=2)
+                    if response.status_code == RESPONSE_STATUS_CODE_SUCCESS:
+                        self.process = self.voice_gen_process  # Backward compatibility
+                        print(f"[VoiceManager] VoiceGenerator is responding")
+                        return True
+                    else:
+                        print(
+                            f"[VoiceManager] VoiceGenerator returned unexpected status code: {response.status_code}")
+                except requests.exceptions.RequestException as e:
+                    if attempt < max_retries - 1:
+                        print(
+                            f"[VoiceManager] VoiceGenerator not ready yet, retrying... ({attempt + 1}/{max_retries})")
+                        time.sleep(1)
+                    else:
+                        print(
+                            f"[VoiceManager] VoiceGenerator is not responding after {max_retries} attempts: {e}")
+                        return False
 
-            return True
+            return False
         except Exception as e:
+            print(f"[VoiceManager] Failed to start VoiceGenerator: {e}")
+            import traceback
+            traceback.print_exc()
             return False
 
     def _start_audio_player(self, wait_time: float = 2.0) -> bool:
@@ -189,19 +220,47 @@ class VoiceManager:
 
             # Check if process is still running
             if self.audio_player_process.poll() is not None:
+                print(
+                    f"[VoiceManager] AudioPlayer process exited with code {self.audio_player_process.returncode}")
+                try:
+                    stdout, stderr = self.audio_player_process.communicate(
+                        timeout=1)
+                    if stderr:
+                        print(f"[VoiceManager] AudioPlayer stderr: {stderr}")
+                    if stdout:
+                        print(f"[VoiceManager] AudioPlayer stdout: {stdout}")
+                except Exception:
+                    pass
                 return False
 
-            # Verify server is responding
-            try:
-                response = requests.get(
-                    f"{self.audio_player_url}/health", timeout=2)
-                if response.status_code == RESPONSE_STATUS_CODE_SUCCESS:
-                    return True
-            except requests.exceptions.RequestException:
-                return False
+            # Verify server is responding with retries
+            print(f"[VoiceManager] Checking if AudioPlayer is responding...")
+            max_retries = 5
+            for attempt in range(max_retries):
+                try:
+                    response = requests.get(
+                        f"{self.audio_player_url}/health", timeout=2)
+                    if response.status_code == RESPONSE_STATUS_CODE_SUCCESS:
+                        print(f"[VoiceManager] AudioPlayer is responding")
+                        return True
+                    else:
+                        print(
+                            f"[VoiceManager] AudioPlayer returned unexpected status code: {response.status_code}")
+                except requests.exceptions.RequestException as e:
+                    if attempt < max_retries - 1:
+                        print(
+                            f"[VoiceManager] AudioPlayer not ready yet, retrying... ({attempt + 1}/{max_retries})")
+                        time.sleep(1)
+                    else:
+                        print(
+                            f"[VoiceManager] AudioPlayer is not responding after {max_retries} attempts: {e}")
+                        return False
 
-            return True
+            return False
         except Exception as e:
+            print(f"[VoiceManager] Failed to start AudioPlayer: {e}")
+            import traceback
+            traceback.print_exc()
             return False
 
     def _start_speech_recognizer(self, wait_time: float = 2.0) -> bool:
@@ -211,8 +270,9 @@ class VoiceManager:
             wait_time: Time to wait for server to start (seconds).
 
         Returns:
-            True if started (and responding when URL provided), False otherwise.
+            True if started and responding, False otherwise.
         """
+        print(f"[VoiceManager] Starting SpeechRecognizer...")
         if self.speech_recognizer_process is not None:
             return True
 
@@ -230,28 +290,59 @@ class VoiceManager:
                 text=True,
             )
 
-            # Wait for potential server to spin up
-            time.sleep(wait_time)
+            print(
+                f"[VoiceManager] Waiting for SpeechRecognizer to start (PID: {self.speech_recognizer_process.pid})...")
 
-            # Check process still running
-            if self.speech_recognizer_process.poll() is not None:
-                return False
+            # Retry loop to check for HTTP endpoint readiness
+            max_retries = 5
+            for attempt in range(max_retries):
+                time.sleep(1)
 
-            # If an HTTP endpoint/port was provided, try a simple health check
-            if self.speech_recognizer_url is not None:
+                # Check process still running
+                if self.speech_recognizer_process.poll() is not None:
+                    print(
+                        f"[VoiceManager] SpeechRecognizer process exited with code {self.speech_recognizer_process.returncode}")
+                    try:
+                        stdout, stderr = self.speech_recognizer_process.communicate(
+                            timeout=1)
+                        if stderr:
+                            print(
+                                f"[VoiceManager] SpeechRecognizer stderr: {stderr}")
+                        if stdout:
+                            print(
+                                f"[VoiceManager] SpeechRecognizer stdout: {stdout}")
+                    except Exception:
+                        pass
+                    return False
+
+                # Check if HTTP endpoint is responding
                 try:
                     response = requests.get(
                         f"{self.speech_recognizer_url}/health", timeout=2)
                     if response.status_code == RESPONSE_STATUS_CODE_SUCCESS:
+                        print(
+                            f"[VoiceManager] SpeechRecognizer is responding on {self.speech_recognizer_url}")
                         return True
                     else:
-                        return False
-                except requests.exceptions.RequestException:
-                    # If no HTTP server exposed, still consider process started
-                    return True
+                        print(
+                            f"[VoiceManager] SpeechRecognizer returned unexpected status code: {response.status_code}")
+                except requests.exceptions.RequestException as e:
+                    if attempt < max_retries - 1:
+                        print(
+                            f"[VoiceManager] SpeechRecognizer not ready yet, retrying... ({attempt + 1}/{max_retries})")
+                    else:
+                        print(
+                            f"[VoiceManager] SpeechRecognizer HTTP not available after {max_retries} attempts: {e}")
 
-            return True
-        except Exception:
+            # If we exhausted retries, report failure
+            print(
+                f"[VoiceManager] Failed to confirm SpeechRecognizer HTTP server is up")
+            return False
+
+        except Exception as e:
+            print(f"[VoiceManager] Failed to start SpeechRecognizer: {e}")
+            import traceback
+            traceback.print_exc()
             return False
 
     def is_speech_recognizer_running(self) -> bool:

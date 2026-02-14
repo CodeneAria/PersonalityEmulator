@@ -74,22 +74,45 @@ class VoicevoxCommunicator(VoiceSynthesizerInterface):
         # Base URL for VOICEVOX API (constructed from HOSTNAME and VOICEVOX_PORT)
         self._base_url = f"http://{HOSTNAME}:{VOICEVOX_PORT}"
 
-        # Start VOICEVOX server process
-        subprocess_command = f"/opt/voicevox_engine/linux-nvidia/run --host {HOSTNAME} --port {VOICEVOX_PORT}"
+        # Check if VOICEVOX server is already running
+        voicevox_already_running = False
         try:
-            self._voicevox_process = subprocess.Popen(
-                subprocess_command,
-                shell=True,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-            )
-            print("[VoicevoxCommunicator] VOICEVOX server started")
-        except Exception as e:
-            print(
-                f"[VoicevoxCommunicator] Error starting VOICEVOX: {e}", file=sys.stderr)
+            response = requests.get(f"{self._base_url}/version", timeout=1)
+            if response.status_code == 200:
+                voicevox_already_running = True
+                print("[VoicevoxCommunicator] VOICEVOX server is already running")
+        except requests.exceptions.RequestException:
+            pass
 
-        # Wait for VOICEVOX server to be ready
-        time.sleep(5)
+        # Start VOICEVOX server process only if not already running
+        if not voicevox_already_running:
+            subprocess_command = f"/opt/voicevox_engine/linux-nvidia/run --host {HOSTNAME} --port {VOICEVOX_PORT}"
+            try:
+                self._voicevox_process = subprocess.Popen(
+                    subprocess_command,
+                    shell=True,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+                print("[VoicevoxCommunicator] VOICEVOX server started")
+
+                # Wait for VOICEVOX server to be ready
+                print(
+                    "[VoicevoxCommunicator] Waiting for VOICEVOX server to start...")
+                for _ in range(10):  # Try for up to 10 seconds
+                    time.sleep(1)
+                    try:
+                        response = requests.get(
+                            f"{self._base_url}/version", timeout=1)
+                        if response.status_code == 200:
+                            print(
+                                "[VoicevoxCommunicator] VOICEVOX server is ready")
+                            break
+                    except requests.exceptions.RequestException:
+                        continue
+            except Exception as e:
+                print(
+                    f"[VoicevoxCommunicator] Error starting VOICEVOX: {e}", file=sys.stderr)
 
         # Post user dictionary to VOICEVOX
         post_command = f'curl -X POST "http://{HOSTNAME}:{VOICEVOX_PORT}/import_user_dict?override=true" -H "Content-Type: application/json" --data-binary @"{USER_DICTIONARY_PATH}"'

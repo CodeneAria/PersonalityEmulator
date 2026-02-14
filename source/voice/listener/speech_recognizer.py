@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 sys.path.append(str(Path(__file__).resolve().parents[2]))
+sys.path.append(str(Path(__file__).resolve().parents[3]))
 
 import threading
 from typing import Optional
@@ -13,6 +14,14 @@ import numpy as np
 import pyaudio
 import torch
 from faster_whisper import WhisperModel
+from flask import Flask, request, jsonify
+
+from config.communcation_settings import (
+    SPEECH_RECOGNIZER_PORT,
+    HOSTNAME,
+    RESPONSE_STATUS_CODE_SUCCESS,
+    RESPONSE_STATUS_CODE_ERROR,
+)
 
 
 class SpeechRecognizer:
@@ -281,3 +290,85 @@ class SpeechRecognizer:
         self.stop()
         if self.audio is not None:
             self.audio.terminate()
+
+
+# Flask app for HTTP server
+app = Flask(__name__)
+speech_recognizer = SpeechRecognizer()
+
+
+@app.route('/health', methods=['GET'])
+def health_check():
+    """Endpoint for health check.
+
+    Response JSON format:
+        {"status": "ok"}
+    """
+    return jsonify({"status": "ok"}), RESPONSE_STATUS_CODE_SUCCESS
+
+
+@app.route('/get_sentence', methods=['GET'])
+def get_sentence():
+    """Endpoint to get the oldest recognized sentence from queue.
+
+    Response JSON format:
+        {"text": "recognized sentence"} or {"text": null} if queue is empty
+    """
+    sentence = speech_recognizer.get_oldest_sentence()
+    return jsonify({"text": sentence}), RESPONSE_STATUS_CODE_SUCCESS
+
+
+@app.route('/latest', methods=['GET'])
+def get_latest():
+    """Endpoint to get the latest recognized sentence from queue.
+
+    Response JSON format:
+        {"text": "recognized sentence"} or {"text": null} if queue is empty
+    """
+    sentence = speech_recognizer.get_latest_sentence()
+    return jsonify({"text": sentence}), RESPONSE_STATUS_CODE_SUCCESS
+
+
+@app.route('/status', methods=['GET'])
+def get_status():
+    """Endpoint to get current recognition status.
+
+    Response JSON format:
+        {"is_running": boolean, "queue_length": number}
+    """
+    return jsonify({
+        "is_running": speech_recognizer.is_running,
+        "queue_length": len(speech_recognizer)
+    }), RESPONSE_STATUS_CODE_SUCCESS
+
+
+@app.route('/clear', methods=['POST'])
+def clear_queue():
+    """Endpoint to clear the sentence queue.
+
+    Response JSON format:
+        {"status": "success"}
+    """
+    speech_recognizer.clear_queue()
+    return jsonify({"status": "success"}), RESPONSE_STATUS_CODE_SUCCESS
+
+
+if __name__ == '__main__':
+    # Initialize and start models in a background thread
+    print("[SpeechRecognizer] Starting server...")
+
+    def init_and_start():
+        try:
+            speech_recognizer.start_speach_to_text_model()
+            speech_recognizer.start_recognition_thread()
+        except Exception as e:
+            print(f"[SpeechRecognizer] Failed to initialize: {e}")
+            import traceback
+            traceback.print_exc()
+
+    # Start initialization in background thread
+    init_thread = threading.Thread(target=init_and_start, daemon=True)
+    init_thread.start()
+
+    # Start Flask server
+    app.run(host=HOSTNAME, port=SPEECH_RECOGNIZER_PORT, debug=False)
