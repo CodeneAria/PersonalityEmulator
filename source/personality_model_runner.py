@@ -54,7 +54,7 @@ class PersonalityModelRunner:
             core_kwargs["system_prompt"] = system_prompt
 
         self.core_manager = PersonalityCoreManager(**core_kwargs)
-        self.vm = VoiceManager()
+        self.voice_manager = VoiceManager()
         self.message_manager = MessageManager()
 
         self.input_text_history: list[str] = []
@@ -136,7 +136,7 @@ class PersonalityModelRunner:
 
         # Generate voice for the sentence
         try:
-            self.vm.generate_voice(sentence)
+            self.voice_manager.generate_voice(sentence)
         except Exception as e:
             print(f"[Runner] VoiceManager error: {e}", file=sys.stderr)
 
@@ -167,7 +167,7 @@ class PersonalityModelRunner:
 
         # Clear voice queues for new response
         try:
-            self.vm.request_clear()
+            self.voice_manager.request_clear()
         except Exception as e:
             print(f"[Runner] Failed to clear queues: {e}", file=sys.stderr)
 
@@ -210,7 +210,7 @@ class PersonalityModelRunner:
 
         # Start VoiceManager
         try:
-            self.vm.start()
+            self.voice_manager.start()
         except Exception as e:
             print(
                 f"[Runner] Failed to start VoiceManager: {e}", file=sys.stderr)
@@ -246,7 +246,7 @@ class PersonalityModelRunner:
             except Exception:
                 pass
             try:
-                self.vm.stop()
+                self.voice_manager.stop()
             except Exception:
                 pass
             try:
@@ -294,7 +294,7 @@ class PersonalityModelRunner:
         """
         if current_voice_active != self._prev_voice_input_active:
             try:
-                self.vm.set_voice_input_active(current_voice_active)
+                self.voice_manager.set_voice_input_active(current_voice_active)
                 if current_voice_active:
                     print("[Runner] Voice input activated")
                 else:
@@ -305,7 +305,7 @@ class PersonalityModelRunner:
             self._prev_voice_input_active = current_voice_active
 
         if not current_voice_active:
-            combined_text = self.vm.get_all_recognized_sentences()
+            combined_text = self.voice_manager.get_all_recognized_sentences()
             if combined_text and combined_text.strip():
                 print(
                     f"[Runner] Voice input received (combined): {combined_text}")

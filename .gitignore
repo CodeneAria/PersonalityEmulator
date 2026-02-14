@@ -68,7 +68,6 @@ htmlcov/
 # Local Python version managers
 .python-version
 
-# KoboldCpp
-koboldcpp
+# LLM model files
 *.gguf
 *.bin
