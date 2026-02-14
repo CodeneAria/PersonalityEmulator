@@ -8,12 +8,13 @@ text into speech using a VoiceManager.
 from __future__ import annotations
 
 import sys
-import time
 from pathlib import Path
-from datetime import datetime
-from typing import Optional
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
+
+import time
+from datetime import datetime
+from typing import Optional
 
 from source.core.personality_core_manager import PersonalityCoreManager
 from source.voice.voice_manager import VoiceManager
