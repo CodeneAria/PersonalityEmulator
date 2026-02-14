@@ -7,12 +7,6 @@ SYNTHESIS_ENDPOINT = f"http://{HOSTNAME}:{VOICEVOX_PORT}/synthesis"
 
 USER_DICTIONARY_PATH = "./voicevox/user_dictionary.json"
 
-# KoboldCpp
-KOBOLDCPP_PORT = 50030
-KOBOLDCPP_PATH = "./kobold_cpp"
-KOBOLDCPP_EXE_FILE = "koboldcpp"
-KOBOLDCPP_DOWNLOAD_URL = "https://github.com/LostRuins/koboldcpp/releases/latest/download/koboldcpp-linux-x64"
-
 # Voice process
 VOICE_GENERATOR_PORT = 50100
 AUDIO_PLAYER_PORT = 50101

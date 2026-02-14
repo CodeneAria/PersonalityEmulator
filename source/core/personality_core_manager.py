@@ -7,16 +7,20 @@ lifecycle, handles conversation history, and generates streaming text responses.
 from __future__ import annotations
 
 import sys
-from pathlib import Path
-from typing import Optional, Generator, Callable
-
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 sys.path.append(str(Path(__file__).resolve().parents[2]))
+
+from pathlib import Path
+from typing import Optional, Generator, Callable
+import urllib.request
+import shutil
+import subprocess
 
 from llama_cpp import Llama
 
 from config.person_settings import (
     LLM_MODEL_PATH,
+    LLM_MODEL_DOWNLOAD_PATH,
     LLM_N_CTX,
     LLM_N_THREADS,
     LLM_N_GPU_LAYERS,
@@ -73,6 +77,13 @@ class PersonalityCoreManager:
             print(f"{PERSONALITY_CORE_SIGNATURE} Model already loaded")
             return True
 
+        # Ensure the model file exists locally; download if missing
+        if not self._ensure_model_exists():
+            download_command = f"curl -L -C - -o {self.model_path} {LLM_MODEL_DOWNLOAD_PATH}"
+            print(
+                f"{PERSONALITY_CORE_SIGNATURE} Model not found. Downloading using command: {download_command}")
+            subprocess.run(download_command, shell=True, check=True)
+
         try:
             print(
                 f"{PERSONALITY_CORE_SIGNATURE} Loading model from {self.model_path}...")
@@ -94,6 +105,31 @@ class PersonalityCoreManager:
         except Exception as e:
             print(
                 f"{PERSONALITY_CORE_SIGNATURE} Failed to load model: {e}", file=sys.stderr)
+            return False
+
+    def _ensure_model_exists(self) -> bool:
+        """Ensure the model file exists locally; download if missing.
+
+        Returns:
+            True if the model file exists or was downloaded successfully, False otherwise.
+        """
+        model_file = Path(self.model_path)
+        if model_file.exists():
+            return True
+
+        download_url = LLM_MODEL_DOWNLOAD_PATH
+        try:
+            model_file.parent.mkdir(parents=True, exist_ok=True)
+            print(
+                f"{PERSONALITY_CORE_SIGNATURE} Model not found at {self.model_path}, downloading from {download_url}...")
+            with urllib.request.urlopen(download_url) as resp, open(model_file, "wb") as out_file:
+                shutil.copyfileobj(resp, out_file)
+            print(
+                f"{PERSONALITY_CORE_SIGNATURE} Downloaded model to {self.model_path}")
+            return True
+        except Exception as e:
+            print(
+                f"{PERSONALITY_CORE_SIGNATURE} Failed to download model: {e}", file=sys.stderr)
             return False
 
     def stop(self) -> None:
