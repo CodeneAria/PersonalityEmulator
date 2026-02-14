@@ -19,6 +19,7 @@ sys.path.append(str(Path(__file__).resolve().parents[2]))
 from config.communcation_settings import (
     VOICE_GENERATOR_PORT,
     AUDIO_PLAYER_PORT,
+    SPEECH_RECOGNIZER_PORT,
     HOSTNAME,
     RESPONSE_STATUS_CODE_SUCCESS,
     RESPONSE_STATUS_CODE_NOT_FOUND,
@@ -37,7 +38,8 @@ class VoiceManager:
         self,
         host: str = HOSTNAME,
         voice_gen_port: int = VOICE_GENERATOR_PORT,
-        audio_player_port: int = AUDIO_PLAYER_PORT
+        audio_player_port: int = AUDIO_PLAYER_PORT,
+        speech_recognizer_port: int = SPEECH_RECOGNIZER_PORT,
     ):
         """Initialize VoiceManager.
 
@@ -53,6 +55,9 @@ class VoiceManager:
         self.audio_player_url = f"http://{host}:{audio_player_port}"
         self.voice_gen_process: Optional[subprocess.Popen] = None
         self.audio_player_process: Optional[subprocess.Popen] = None
+        self.speech_recognizer_process: Optional[subprocess.Popen] = None
+        self.speech_recognizer_port: int = speech_recognizer_port
+        self.speech_recognizer_url: str = f"http://{host}:{speech_recognizer_port}"
 
         # For backward compatibility
         self.base_url = self.voice_gen_url
@@ -66,7 +71,7 @@ class VoiceManager:
         self.clear_event = threading.Event()
         self.clear_before_count = 0  # Number of items in queue when clear was requested
 
-    def start(self, wait_time: float = 2.0, start_audio_player: bool = True) -> bool:
+    def start(self, wait_time: float = 2.0, start_audio_player: bool = True, start_speech_recognizer: bool = True) -> bool:
         """Start VoiceGenerator and optionally AudioPlayer subprocesses.
 
         Args:
@@ -86,6 +91,13 @@ class VoiceManager:
             audio_player_success = self._start_audio_player(wait_time)
             if not audio_player_success:
                 self.stop()  # Stop VoiceGenerator if AudioPlayer fails
+                return False
+
+        # Start SpeechRecognizer if requested
+        if start_speech_recognizer:
+            speech_rec_success = self._start_speech_recognizer(wait_time)
+            if not speech_rec_success:
+                self.stop()
                 return False
 
         # Start worker thread
@@ -191,6 +203,103 @@ class VoiceManager:
             return True
         except Exception as e:
             return False
+
+    def _start_speech_recognizer(self, wait_time: float = 2.0) -> bool:
+        """Start SpeechRecognizer subprocess.
+
+        Args:
+            wait_time: Time to wait for server to start (seconds).
+
+        Returns:
+            True if started (and responding when URL provided), False otherwise.
+        """
+        if self.speech_recognizer_process is not None:
+            return True
+
+        path = Path.cwd() / "source" / "voice" / "listener" / "speech_recognizer.py"
+        if not path.is_file():
+            raise FileNotFoundError(
+                f"SpeechRecognizer script not found at {path}")
+        recognizer_script = path
+
+        try:
+            self.speech_recognizer_process = subprocess.Popen(
+                [sys.executable, str(recognizer_script)],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
+
+            # Wait for potential server to spin up
+            time.sleep(wait_time)
+
+            # Check process still running
+            if self.speech_recognizer_process.poll() is not None:
+                return False
+
+            # If an HTTP endpoint/port was provided, try a simple health check
+            if self.speech_recognizer_url is not None:
+                try:
+                    response = requests.get(
+                        f"{self.speech_recognizer_url}/health", timeout=2)
+                    if response.status_code == RESPONSE_STATUS_CODE_SUCCESS:
+                        return True
+                    else:
+                        return False
+                except requests.exceptions.RequestException:
+                    # If no HTTP server exposed, still consider process started
+                    return True
+
+            return True
+        except Exception:
+            return False
+
+    def is_speech_recognizer_running(self) -> bool:
+        """Check if SpeechRecognizer process is running.
+
+        Returns:
+            True if running, False otherwise.
+        """
+        if self.speech_recognizer_process is None:
+            return False
+        return self.speech_recognizer_process.poll() is None
+
+    def get_user_input_sentence(self) -> Optional[str]:
+        """Retrieve the latest recognized sentence from SpeechRecognizer.
+           This method first tries to get the sentence via HTTP from the SpeechRecognizer.
+           If that fails (e.g., no HTTP server exposed), it falls back to checking
+           a local SpeechRecognizer instance if one was attached.
+
+            Returns:
+            The oldest recognized sentence, or None if not available.
+        """
+        # If recognizer exposes an HTTP API, prefer that
+        if self.speech_recognizer_url is not None:
+            try:
+                resp = requests.get(
+                    f"{self.speech_recognizer_url}/latest", timeout=3)
+                if resp.status_code == RESPONSE_STATUS_CODE_SUCCESS:
+                    try:
+                        data = resp.json()
+                        # Accept {'text': '...'} or raw string
+                        if isinstance(data, dict):
+                            return data.get("text")
+                        return str(data)
+                    except ValueError:
+                        return resp.text or None
+                return None
+            except requests.exceptions.RequestException:
+                return None
+
+        # Best-effort: if a local SpeechRecognizer instance was attached, use it
+        local = getattr(self, "_local_speech_recognizer", None)
+        if local is not None:
+            try:
+                return local.get_oldest_sentence()
+            except Exception:
+                return None
+
+        return None
 
     def stop(self) -> None:
         """Stop VoiceGenerator and AudioPlayer subprocesses."""

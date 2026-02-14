@@ -13,9 +13,10 @@ KOBOLDCPP_PATH = "./kobold_cpp"
 KOBOLDCPP_EXE_FILE = "koboldcpp"
 KOBOLDCPP_DOWNLOAD_URL = "https://github.com/LostRuins/koboldcpp/releases/latest/download/koboldcpp-linux-x64"
 
-# Speaker process
+# Voice process
 VOICE_GENERATOR_PORT = 50100
 AUDIO_PLAYER_PORT = 50101
+SPEECH_RECOGNIZER_PORT = 50102
 
 # Messenger process
 MESSENGER_PORT = 50050
