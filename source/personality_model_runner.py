@@ -21,6 +21,7 @@ from source.voice.voice_manager import VoiceManager
 from source.messenger.message_manager import MessageManager
 
 from config.person_settings import (
+    PERSONALITY_MODEL_NAME,
     WHISPER_TRANSCRIBE_PREFIX,
     PERSONALITY_CORE_SIGNATURE,
 )
@@ -162,7 +163,8 @@ class PersonalityModelRunner:
             print(f"[Runner] Failed to clear queues: {e}", file=sys.stderr)
 
         # Send initial empty message to get message ID
-        message_id = self.message_manager.send_message("Assistant", "")
+        message_id = self.message_manager.send_message(
+            PERSONALITY_MODEL_NAME, "")
 
         # Generate streaming response
         response_text = ""
@@ -215,57 +217,13 @@ class PersonalityModelRunner:
 
         try:
             while self.core_manager.is_running:
-                # Poll voice input state from MessageManager
                 current_voice_active = self.message_manager.update_voice_input_state()
 
-                # Handle voice input state changes
-                if current_voice_active != self._prev_voice_input_active:
-                    # Update SpeechRecognizer via VoiceManager
-                    try:
-                        self.vm.set_voice_input_active(current_voice_active)
-                        if current_voice_active:
-                            print("[Runner] Voice input activated")
-                        else:
-                            print("[Runner] Voice input deactivated")
+                self._handle_voice_input_state(current_voice_active)
 
-                    except Exception as e:
-                        print(
-                            f"[Runner] Failed to update voice input state: {e}", file=sys.stderr)
-                    self._prev_voice_input_active = current_voice_active
-
-                if not current_voice_active:
-                    combined_text = self.vm.get_all_recognized_sentences()
-                    if combined_text and combined_text.strip():
-                        print(
-                            f"[Runner] Voice input received (combined): {combined_text}")
-                        self._process_user_input(
-                            combined_text, sender="Voice")
-
-                # Poll for new messages from browser
                 messages = self.message_manager.get_messages()
 
-                # Process only new messages
-                if len(messages) > self.processed_message_count:
-                    for i in range(self.processed_message_count, len(messages)):
-                        msg = messages[i]
-                        sender = msg.get("sender", "")
-                        text = msg.get("text", "")
-
-                        # Skip system messages, assistant messages, or voice input display messages
-                        if not text or sender.lower() in ("assistant", "user (voice)"):
-                            continue
-
-                        # Check for exit command
-                        if text.strip().lower() in ("exit", "quit"):
-                            self.message_manager.send_message(
-                                "System", "Shutting down...")
-                            self.core_manager.is_running = False
-                            break
-
-                        # Process user input
-                        self._process_user_input(text, sender=sender)
-
-                    self.processed_message_count = len(messages)
+                self._process_pending_messages(messages)
 
                 # Sleep briefly to avoid busy waiting
                 time.sleep(0.2)
@@ -287,6 +245,60 @@ class PersonalityModelRunner:
                 pass
 
         return 0
+
+    def _process_pending_messages(self, messages: list[dict]) -> None:
+        """Process new messages received from MessageManager.
+
+        This handles skipping system/assistant display messages, checking for
+        exit/quit commands, and forwarding user messages to
+        `_process_user_input`. It also advances `self.processed_message_count`.
+        """
+        if len(messages) > self.processed_message_count:
+            for i in range(self.processed_message_count, len(messages)):
+                msg = messages[i]
+                sender = msg.get("sender", "")
+                text = msg.get("text", "")
+
+                # Skip system messages, assistant messages, or voice input display messages
+                if not text or sender.lower() in (PERSONALITY_MODEL_NAME.lower(), "user (voice)"):
+                    continue
+
+                # Check for exit command
+                if text.strip().lower() in ("exit", "quit"):
+                    self.message_manager.send_message(
+                        "System", "Shutting down...")
+                    self.core_manager.is_running = False
+                    break
+
+                # Process user input
+                self._process_user_input(text, sender=sender)
+
+            self.processed_message_count = len(messages)
+
+    def _handle_voice_input_state(self, current_voice_active: bool) -> None:
+        """Handle changes to voice input active state and process recognized speech.
+
+        Args:
+            current_voice_active: Whether voice input is currently active.
+        """
+        if current_voice_active != self._prev_voice_input_active:
+            try:
+                self.vm.set_voice_input_active(current_voice_active)
+                if current_voice_active:
+                    print("[Runner] Voice input activated")
+                else:
+                    print("[Runner] Voice input deactivated")
+            except Exception as e:
+                print(
+                    f"[Runner] Failed to update voice input state: {e}", file=sys.stderr)
+            self._prev_voice_input_active = current_voice_active
+
+        if not current_voice_active:
+            combined_text = self.vm.get_all_recognized_sentences()
+            if combined_text and combined_text.strip():
+                print(
+                    f"[Runner] Voice input received (combined): {combined_text}")
+                self._process_user_input(combined_text, sender="Voice")
 
     def run_single_response(self, user_input: str) -> str:
         """Generate a single response without interactive loop.
