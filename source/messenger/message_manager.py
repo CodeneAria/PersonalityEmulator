@@ -241,11 +241,16 @@ class MessageManager:
             print(f"Failed to update voice input state: {e}")
             return False
 
-    def process_pending_messages(self, callback: Callable[[str, str], None], processed_count: int) -> int:
+    def process_pending_messages(
+        self,
+        process_user_input_function: Callable[[str, str], None],
+        processed_count: int
+    ) -> int:
         """Process new messages and invoke a callback for user messages.
 
         Args:
-            callback: Callable that accepts (text, source) to process a user message.
+            process_user_input_function: Callable that accepts (text, source)
+              to process a user message.
             processed_count: The number of messages already processed.
 
         Returns:
@@ -266,7 +271,7 @@ class MessageManager:
                     continue
 
                 try:
-                    callback(text, source)
+                    process_user_input_function(text, source)
                 except Exception as e:
                     print(f"Failed to process message: {e}")
 
