@@ -10,4 +10,4 @@ aria2c -x 16 -s 16 https://github.com/VOICEVOX/voicevox_engine/releases/download
 7z x voicevox_engine-linux-nvidia-0.25.1.7z.001
 rm voicevox_engine-linux-nvidia-0.25.1.7z.00*
 
-chmod +x voicevox_engine-linux-nvidia-0.25.1/run
+chmod +x linux-nvidia/run
