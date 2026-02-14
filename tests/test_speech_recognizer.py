@@ -105,6 +105,8 @@ def test_speech_recognizer_recognition_workflow():
     time.sleep(1.0)
     assert recognizer.is_running == True
 
+    recognizer.set_voice_input_active(True)
+
     # Allow time for user to speak (10 seconds)
     print("\n" + "=" * 60)
     print("[Test] Please speak into your microphone now!")
@@ -116,6 +118,10 @@ def test_speech_recognizer_recognition_workflow():
         time.sleep(1.0)
 
     print("\n[Test] Recognition period ended.")
+
+    # Disable voice input
+    print("[Test] Disabling voice input...")
+    recognizer.set_voice_input_active(False)
 
     # Stop recognition
     print("[Test] Stopping recognition...")
