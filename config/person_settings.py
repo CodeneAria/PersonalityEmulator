@@ -20,11 +20,11 @@ STORY_SETTINGS_PATH = STORY_SETTINGS_PATH_HAKUREI_REIMU
 PERSONALITY_CORE_SIGNATURE = "[PersonalityCore]"
 USE_ELYZA_JP_MODEL = False
 if USE_ELYZA_JP_MODEL:
-    LLM_MODEL_PATH = "./llm/gemma-3-4b-it-Q4_K_M.gguf"
-    LLM_MODEL_DOWNLOAD_PATH = "https://huggingface.co/ggml-org/gemma-3-4b-it-GGUF/resolve/main/gemma-3-4b-it-Q4_K_M.gguf"
-else:
     LLM_MODEL_PATH = "./llm/Llama-3-ELYZA-JP-8B-q4_k_m.gguf"
     LLM_MODEL_DOWNLOAD_PATH = "https://huggingface.co/elyza/Llama-3-ELYZA-JP-8B-GGUF/blob/main/Llama-3-ELYZA-JP-8B-q4_k_m.gguf"
+else:
+    LLM_MODEL_PATH = "./llm/gemma-3-4b-it-Q4_K_M.gguf"
+    LLM_MODEL_DOWNLOAD_PATH = "https://huggingface.co/ggml-org/gemma-3-4b-it-GGUF/resolve/main/gemma-3-4b-it-Q4_K_M.gguf"
 
 
 LLM_N_CTX = 2048

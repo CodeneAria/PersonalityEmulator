@@ -79,10 +79,7 @@ class PersonalityCoreManager:
 
         # Ensure the model file exists locally; download if missing
         if not self._ensure_model_exists():
-            download_command = f"curl -L -C - -o {self.model_path} {LLM_MODEL_DOWNLOAD_PATH}"
-            print(
-                f"{PERSONALITY_CORE_SIGNATURE} Model not found. Downloading using command: {download_command}")
-            subprocess.run(download_command, shell=True, check=True)
+            return False
 
         try:
             print(
@@ -122,10 +119,11 @@ class PersonalityCoreManager:
             model_file.parent.mkdir(parents=True, exist_ok=True)
             print(
                 f"{PERSONALITY_CORE_SIGNATURE} Model not found at {self.model_path}, downloading from {download_url}...")
-            with urllib.request.urlopen(download_url) as resp, open(model_file, "wb") as out_file:
-                shutil.copyfileobj(resp, out_file)
+            download_command = f"curl -L -C - -o {self.model_path} {download_url}"
             print(
-                f"{PERSONALITY_CORE_SIGNATURE} Downloaded model to {self.model_path}")
+                f"{PERSONALITY_CORE_SIGNATURE} Model not found. Downloading using command: {download_command}")
+            subprocess.run(download_command, shell=True, check=True)
+
             return True
         except Exception as e:
             print(
