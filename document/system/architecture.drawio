@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="tUt2692nH3gP2dSNE3GJ" name="アーキテクチャ_目標">
-        <mxGraphModel dx="2156" dy="1492" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+        <mxGraphModel dx="1457" dy="1492" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -449,7 +449,7 @@
         </mxGraphModel>
     </diagram>
     <diagram id="yewYp5VykBUmHmuCO6lf" name="概要クラス図_現状">
-        <mxGraphModel dx="1916" dy="652" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+        <mxGraphModel dx="2204" dy="650" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -684,28 +684,28 @@
                 <mxCell id="rOTUpS7Yylla1V9O_AOd-89" value="返答WAVデータ" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
                     <mxGeometry x="-220" y="1105" width="110" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="mRdsE647OePLI8OW13vA-5" value="" style="endArrow=classic;html=1;" edge="1" parent="1">
+                <mxCell id="mRdsE647OePLI8OW13vA-5" value="" style="endArrow=classic;html=1;" parent="1" edge="1">
                     <mxGeometry width="50" height="50" relative="1" as="geometry">
                         <mxPoint x="70" y="127" as="sourcePoint"/>
                         <mxPoint x="70" y="97" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="mRdsE647OePLI8OW13vA-6" value="入力文字列" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                <mxCell id="mRdsE647OePLI8OW13vA-6" value="入力文字列" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
                     <mxGeometry x="-30" y="97" width="90" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="mRdsE647OePLI8OW13vA-7" value="VoiceListener" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                <mxCell id="mRdsE647OePLI8OW13vA-7" value="SpeechRecognizer" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
                     <mxGeometry x="-640" y="804" width="200" height="86" as="geometry"/>
                 </mxCell>
-                <mxCell id="mRdsE647OePLI8OW13vA-8" value="field:&amp;nbsp;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" vertex="1" parent="mRdsE647OePLI8OW13vA-7">
+                <mxCell id="mRdsE647OePLI8OW13vA-8" value="field:&amp;nbsp;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" parent="mRdsE647OePLI8OW13vA-7" vertex="1">
                     <mxGeometry y="26" width="200" height="26" as="geometry"/>
                 </mxCell>
-                <mxCell id="mRdsE647OePLI8OW13vA-9" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" vertex="1" parent="mRdsE647OePLI8OW13vA-7">
+                <mxCell id="mRdsE647OePLI8OW13vA-9" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" parent="mRdsE647OePLI8OW13vA-7" vertex="1">
                     <mxGeometry y="52" width="200" height="8" as="geometry"/>
                 </mxCell>
-                <mxCell id="mRdsE647OePLI8OW13vA-10" value="method: 音声を文字列化" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" vertex="1" parent="mRdsE647OePLI8OW13vA-7">
+                <mxCell id="mRdsE647OePLI8OW13vA-10" value="method: 音声を文字列化" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" parent="mRdsE647OePLI8OW13vA-7" vertex="1">
                     <mxGeometry y="60" width="200" height="26" as="geometry"/>
                 </mxCell>
-                <mxCell id="mRdsE647OePLI8OW13vA-13" value="" style="edgeStyle=elbowEdgeStyle;elbow=vertical;endArrow=diamond;html=1;curved=0;rounded=0;endSize=8;startSize=8;entryX=0;entryY=0.25;entryDx=0;entryDy=0;endFill=0;" edge="1" parent="1" source="mRdsE647OePLI8OW13vA-7" target="rOTUpS7Yylla1V9O_AOd-25">
+                <mxCell id="mRdsE647OePLI8OW13vA-13" value="" style="edgeStyle=elbowEdgeStyle;elbow=vertical;endArrow=diamond;html=1;curved=0;rounded=0;endSize=8;startSize=8;entryX=0;entryY=0.25;entryDx=0;entryDy=0;endFill=0;" parent="1" source="mRdsE647OePLI8OW13vA-7" target="rOTUpS7Yylla1V9O_AOd-25" edge="1">
                     <mxGeometry width="50" height="50" relative="1" as="geometry">
                         <mxPoint x="-480" y="697" as="sourcePoint"/>
                         <mxPoint x="-430" y="647" as="targetPoint"/>
@@ -714,52 +714,52 @@
                         </Array>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="mRdsE647OePLI8OW13vA-14" value="" style="endArrow=classic;html=1;" edge="1" parent="1">
+                <mxCell id="mRdsE647OePLI8OW13vA-14" value="" style="endArrow=classic;html=1;" parent="1" edge="1">
                     <mxGeometry width="50" height="50" relative="1" as="geometry">
                         <mxPoint x="70" y="533" as="sourcePoint"/>
                         <mxPoint x="70" y="503" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="mRdsE647OePLI8OW13vA-15" value="入力音声文字列" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                <mxCell id="mRdsE647OePLI8OW13vA-15" value="入力音声文字列" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
                     <mxGeometry x="-50" y="503" width="110" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="mRdsE647OePLI8OW13vA-16" value="" style="endArrow=classic;html=1;" edge="1" parent="1">
+                <mxCell id="mRdsE647OePLI8OW13vA-16" value="" style="endArrow=classic;html=1;" parent="1" edge="1">
                     <mxGeometry width="50" height="50" relative="1" as="geometry">
                         <mxPoint x="68.58000000000004" y="327" as="sourcePoint"/>
                         <mxPoint x="68.58000000000004" y="297" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="mRdsE647OePLI8OW13vA-17" value="入力文字列" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                <mxCell id="mRdsE647OePLI8OW13vA-17" value="入力文字列" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
                     <mxGeometry x="-40" y="297" width="98.58" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="mRdsE647OePLI8OW13vA-18" value="&amp;lt;別プロセスで起動&amp;gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                <mxCell id="mRdsE647OePLI8OW13vA-18" value="&amp;lt;別プロセスで起動&amp;gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
                     <mxGeometry x="-780" y="832" width="140" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="mRdsE647OePLI8OW13vA-23" style="edgeStyle=none;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;endArrow=diamond;endFill=0;" edge="1" parent="1" source="mRdsE647OePLI8OW13vA-19" target="mRdsE647OePLI8OW13vA-7">
+                <mxCell id="mRdsE647OePLI8OW13vA-23" style="edgeStyle=none;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;endArrow=diamond;endFill=0;" parent="1" source="mRdsE647OePLI8OW13vA-19" target="mRdsE647OePLI8OW13vA-7" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="mRdsE647OePLI8OW13vA-19" value="Speach-to-Text&lt;div&gt;モデル&lt;/div&gt;" style="html=1;whiteSpace=wrap;" vertex="1" parent="1">
+                <mxCell id="mRdsE647OePLI8OW13vA-19" value="Speach-to-Text&lt;div&gt;モデル&lt;/div&gt;" style="html=1;whiteSpace=wrap;" parent="1" vertex="1">
                     <mxGeometry x="-595" y="1004" width="110" height="50" as="geometry"/>
                 </mxCell>
-                <mxCell id="mRdsE647OePLI8OW13vA-20" value="&amp;lt;別プロセスで起動&amp;gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                <mxCell id="mRdsE647OePLI8OW13vA-20" value="&amp;lt;別プロセスで起動&amp;gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
                     <mxGeometry x="-485" y="1014" width="140" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="mRdsE647OePLI8OW13vA-24" value="" style="endArrow=classic;html=1;" edge="1" parent="1">
+                <mxCell id="mRdsE647OePLI8OW13vA-24" value="" style="endArrow=classic;html=1;" parent="1" edge="1">
                     <mxGeometry width="50" height="50" relative="1" as="geometry">
                         <mxPoint x="-550" y="931" as="sourcePoint"/>
                         <mxPoint x="-550" y="901" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="mRdsE647OePLI8OW13vA-25" value="音声文字列" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                <mxCell id="mRdsE647OePLI8OW13vA-25" value="音声文字列" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
                     <mxGeometry x="-660" y="901" width="110" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="mRdsE647OePLI8OW13vA-26" value="" style="endArrow=classic;html=1;" edge="1" parent="1">
+                <mxCell id="mRdsE647OePLI8OW13vA-26" value="" style="endArrow=classic;html=1;" parent="1" edge="1">
                     <mxGeometry width="50" height="50" relative="1" as="geometry">
                         <mxPoint x="-550" y="714" as="sourcePoint"/>
                         <mxPoint x="-550" y="684" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="mRdsE647OePLI8OW13vA-27" value="&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;入力音声文字列&lt;/span&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                <mxCell id="mRdsE647OePLI8OW13vA-27" value="&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;入力音声文字列&lt;/span&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
                     <mxGeometry x="-660" y="684" width="110" height="30" as="geometry"/>
                 </mxCell>
             </root>

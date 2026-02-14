@@ -49,7 +49,12 @@ class SpeechRecognizer:
         self.device = device if device is not None else (
             "cuda" if torch.cuda.is_available() else "cpu"
         )
-        self.compute_type = compute_type
+
+        if self.device == "cuda":
+            self.compute_type = compute_type
+        else:
+            self.compute_type = "int8"
+
         self.rate = rate
         self.chunk = chunk
         self.channels = channels
