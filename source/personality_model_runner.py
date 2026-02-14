@@ -231,7 +231,8 @@ class PersonalityModelRunner:
 
                 self._handle_voice_input_state(current_voice_active)
 
-                self._process_pending_messages()
+                self.processed_message_count = self.message_manager.process_pending_messages(
+                    self._process_user_input, self.processed_message_count)
 
                 # Sleep briefly to avoid busy waiting
                 time.sleep(0.2)
@@ -254,27 +255,7 @@ class PersonalityModelRunner:
 
         return 0
 
-    def _process_pending_messages(self) -> None:
-        """Process new messages received from MessageManager.
-
-        This handles skipping system/assistant display messages, checking for
-        exit/quit commands, and forwarding user messages to
-        `_process_user_input`. It also advances `self.processed_message_count`.
-        """
-        messages = self.message_manager.get_messages()
-
-        if len(messages) > self.processed_message_count:
-            for i in range(self.processed_message_count, len(messages)):
-                msg = messages[i]
-                text = msg.get("text", "")
-                source = msg.get("source", MessageSource.SYSTEM.value)
-
-                if source in (MessageSource.VOICE.value, MessageSource.SYSTEM.value):
-                    continue
-
-                self._process_user_input(text, source=source)
-
-            self.processed_message_count = len(messages)
+    # Processing of pending messages is delegated to MessageManager.process_pending_messages
 
     def _handle_voice_input_state(self, current_voice_active: bool) -> None:
         """Handle changes to voice input active state and process recognized speech.

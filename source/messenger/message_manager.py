@@ -10,7 +10,7 @@ sys.path.append(str(Path(__file__).resolve().parents[2]))
 import subprocess
 import time
 import threading
-from typing import Optional, Union
+from typing import Optional, Union, Callable
 import requests
 
 from config.communcation_settings import (
@@ -240,6 +240,39 @@ class MessageManager:
         except requests.exceptions.RequestException as e:
             print(f"Failed to update voice input state: {e}")
             return False
+
+    def process_pending_messages(self, callback: Callable[[str, str], None], processed_count: int) -> int:
+        """Process new messages and invoke a callback for user messages.
+
+        Args:
+            callback: Callable that accepts (text, source) to process a user message.
+            processed_count: The number of messages already processed.
+
+        Returns:
+            The updated processed message count (int).
+        """
+        try:
+            messages = self.get_messages()
+        except Exception:
+            return processed_count
+
+        if len(messages) > processed_count:
+            for i in range(processed_count, len(messages)):
+                msg = messages[i]
+                text = msg.get("text", "")
+                source = msg.get("source", MessageSource.SYSTEM.value)
+
+                if source in (MessageSource.VOICE.value, MessageSource.SYSTEM.value):
+                    continue
+
+                try:
+                    callback(text, source)
+                except Exception as e:
+                    print(f"Failed to process message: {e}")
+
+            processed_count = len(messages)
+
+        return processed_count
 
     def set_voice_input_state(self, active: bool) -> bool:
         """Set the voice input state on the ChatWindow server and update local cache."""
