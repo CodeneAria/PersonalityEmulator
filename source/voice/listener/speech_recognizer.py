@@ -227,11 +227,7 @@ class SpeechRecognizer:
                             condition_on_previous_text=True,
                         )
 
-                        # Add recognized text to queue
-                        for segment in segments:
-                            text = segment.text.strip()
-                            if text:
-                                self.sentence_queue.append(text)
+                        self.add_recognized_text_to_queue(segments)
 
                     audio_buffer = []
 
@@ -239,6 +235,18 @@ class SpeechRecognizer:
             print(f"[SpeechRecognizer] Error during recognition: {e}")
         finally:
             self._cleanup()
+
+    def add_recognized_text_to_queue(self, segments: list) -> None:
+        """Add recognized text to the sentence queue.
+
+        Args:
+            segments: List of recognized segments to add to the queue.
+        """
+        for segment in segments:
+            text = segment.text.strip()
+            if text:
+                print(f"[SpeechRecognizer] Recognized: {text}")
+                self.sentence_queue.append(text)
 
     def start_recognition_thread(self) -> None:
         """Start speech recognition in a background thread."""
