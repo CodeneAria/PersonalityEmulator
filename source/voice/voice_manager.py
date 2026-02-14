@@ -421,6 +421,20 @@ class VoiceManager:
                 self.audio_player_process.wait()
             self.audio_player_process = None
 
+        # Stop SpeechRecognizer
+        if self.speech_recognizer_process is not None:
+            try:
+                self.speech_recognizer_process.terminate()
+                try:
+                    self.speech_recognizer_process.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    self.speech_recognizer_process.kill()
+                    self.speech_recognizer_process.wait()
+            except Exception:
+                pass
+            finally:
+                self.speech_recognizer_process = None
+
     def _worker_loop(self) -> None:
         """Worker thread loop for async voice generation and playback."""
         while not self.stop_event.is_set():
