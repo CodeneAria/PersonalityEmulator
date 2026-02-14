@@ -22,9 +22,44 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 import socket
 from pathlib import Path
 import pytest
+import subprocess
+import atexit
+import time
 
 from source.speaker.voicevox.voicevox_communicator import VoicevoxCommunicator
 from config.communcation_settings import HOSTNAME, VOICEVOX_PORT
+
+# start voicevox in background (do not block); register cleanup at exit
+subprocess_command = f"/opt/voicevox_engine/linux-nvidia/run --host {HOSTNAME} --port {VOICEVOX_PORT}"
+proc = None
+try:
+    proc = subprocess.Popen(
+        subprocess_command,
+        shell=True,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+except Exception as e:
+    print(f"Error starting VOICEVOX: {e}", file=sys.stderr)
+else:
+    def _cleanup_voicevox():
+        global proc
+        if proc is None:
+            return
+        try:
+            if proc.poll() is None:
+                proc.terminate()
+                try:
+                    proc.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    proc.kill()
+        except Exception:
+            pass
+
+    atexit.register(_cleanup_voicevox)
+
+# wait until VOICEVOX is reachable before running tests
+time.sleep(5)
 
 
 def _is_port_open(host: str, port: int, timeout: float = 2.0) -> bool:
