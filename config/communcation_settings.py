@@ -1,4 +1,4 @@
-HOSTNAME = "0.0.0.0"
+HOSTNAME = "host.docker.internal"
 
 # VOICEVOX
 VOICEVOX_PORT = 50021

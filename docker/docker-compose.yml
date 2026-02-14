@@ -12,11 +12,13 @@ services:
     stdin_open: true
     tty: true
     ports:
-      - "50021:50021"
+      # - "50021:50021"  # ホスト側のVOICEVOXアプリを使用する場合はコメントアウト
       - "50030:50030"
       - "50050:50050"
       - "50100:50100"
       - "50101:50101"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  # コンテナからホストへのアクセス
     devices:
       - /dev/snd:/dev/snd
     environment:
