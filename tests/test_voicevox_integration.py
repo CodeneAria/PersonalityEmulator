@@ -27,7 +27,11 @@ import atexit
 import time
 
 from source.speaker.voicevox.voicevox_communicator import VoicevoxCommunicator
-from config.communcation_settings import HOSTNAME, VOICEVOX_PORT
+from config.communcation_settings import (
+    HOSTNAME,
+    VOICEVOX_PORT,
+    USER_DICTIONARY_PATH
+)
 
 # start voicevox in background (do not block); register cleanup at exit
 subprocess_command = f"/opt/voicevox_engine/linux-nvidia/run --host {HOSTNAME} --port {VOICEVOX_PORT}"
@@ -60,6 +64,14 @@ else:
 
 # wait until VOICEVOX is reachable before running tests
 time.sleep(5)
+
+# post user dictionary to VOICEVOX
+post_command = f"curl -X POST \"http://{HOSTNAME}:{VOICEVOX_PORT}/import_user_dict?override=true\" -H \"Content-Type: application/json\" --data-binary @\"{USER_DICTIONARY_PATH}\""
+try:
+    subprocess.run(post_command, shell=True, check=True,
+                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+except Exception as e:
+    print(f"Error posting user dictionary to VOICEVOX: {e}", file=sys.stderr)
 
 
 def _is_port_open(host: str, port: int, timeout: float = 2.0) -> bool:

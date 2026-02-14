@@ -5,6 +5,8 @@ VOICEVOX_PORT = 50021
 AUDIO_QUERY_ENDPOINT = f"http://{HOSTNAME}:{VOICEVOX_PORT}/audio_query"
 SYNTHESIS_ENDPOINT = f"http://{HOSTNAME}:{VOICEVOX_PORT}/synthesis"
 
+USER_DICTIONARY_PATH = "./voicevox/user_dictionary.json"
+
 # KoboldCpp
 KOBOLDCPP_PORT = 50030
 KOBOLDCPP_PATH = "./kobold_cpp"
