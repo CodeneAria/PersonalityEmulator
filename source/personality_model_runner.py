@@ -19,6 +19,7 @@ from typing import Optional
 from source.core.personality_core_manager import PersonalityCoreManager
 from source.voice.voice_manager import VoiceManager
 from source.messenger.message_manager import MessageManager
+from source.messenger.message_source import MessageSource
 
 from config.person_settings import (
     PERSONALITY_MODEL_NAME,
@@ -139,12 +140,16 @@ class PersonalityModelRunner:
         except Exception as e:
             print(f"[Runner] VoiceManager error: {e}", file=sys.stderr)
 
-    def _process_user_input(self, text: str, sender: str = "User") -> None:
+    def _process_user_input(
+            self,
+            text: str,
+            source: str = MessageSource.SYSTEM.value
+    ) -> None:
         """Process user input text and generate LLM response.
 
         Args:
             text: User input text.
-            sender: Message sender name.
+            source: Message source.
         """
         if not text or not text.strip():
             return
@@ -153,11 +158,11 @@ class PersonalityModelRunner:
         self.store_input_with_timestamp(text)
 
         # Display user's voice input in chat first (before assistant response)
-        if sender == "Voice":
+        if source == MessageSource.VOICE.value:
             self.message_manager.send_message(
                 sender="User (Voice)",
                 text=text,
-                source="voice"
+                source=MessageSource.VOICE.value
             )
 
         # Clear voice queues for new response
@@ -168,7 +173,7 @@ class PersonalityModelRunner:
 
         # Send initial empty message to get message ID
         message_id = self.message_manager.send_message(
-            PERSONALITY_MODEL_NAME, "", source="system")
+            PERSONALITY_MODEL_NAME, "", source=MessageSource.SYSTEM.value)
 
         # Generate streaming response
         response_text = ""
@@ -186,7 +191,7 @@ class PersonalityModelRunner:
                 self.message_manager.update_message(message_id, error_msg)
             else:
                 self.message_manager.send_message(
-                    sender="System", text=error_msg, source="system")
+                    sender="System", text=error_msg, source=MessageSource.SYSTEM.value)
             print(f"\n[Runner] Generation error: {e}", file=sys.stderr)
 
     def run(self) -> int:
@@ -263,21 +268,21 @@ class PersonalityModelRunner:
                 msg = messages[i]
                 sender = msg.get("sender", "")
                 text = msg.get("text", "")
-                source = msg.get("source", "system")
+                source = msg.get("source", MessageSource.SYSTEM.value)
 
                 # Skip system messages, assistant messages, or voice input display messages
-                if source in ("voice", "system"):
+                if source in (MessageSource.VOICE.value, MessageSource.SYSTEM.value):
                     continue
 
                 # Check for exit command
                 if text.strip().lower() in ("exit", "quit"):
                     self.message_manager.send_message(
-                        sender="System", text="Shutting down...", source="system")
+                        sender="System", text="Shutting down...", source=MessageSource.SYSTEM.value)
                     self.core_manager.is_running = False
                     break
 
                 # Process user input
-                self._process_user_input(text, sender=sender)
+                self._process_user_input(text, source=source)
 
             self.processed_message_count = len(messages)
 
@@ -304,7 +309,8 @@ class PersonalityModelRunner:
             if combined_text and combined_text.strip():
                 print(
                     f"[Runner] Voice input received (combined): {combined_text}")
-                self._process_user_input(combined_text, sender="Voice")
+                self._process_user_input(
+                    combined_text, source=MessageSource.VOICE.value)
 
     def run_single_response(self, user_input: str) -> str:
         """Generate a single response without interactive loop.

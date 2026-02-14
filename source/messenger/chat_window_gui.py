@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 sys.path.append(str(Path(__file__).resolve().parents[2]))
 
@@ -15,6 +16,8 @@ from pathlib import Path
 import logging
 
 from flask import Flask, request, jsonify, send_from_directory
+
+from source.messenger.message_source import MessageSource, normalize_source
 
 from config.communcation_settings import (
     MESSENGER_PORT,
@@ -35,21 +38,24 @@ voice_input_active = False
 voice_input_lock = threading.Lock()
 
 
-def add_message_to_store(sender: str, text: str, source: str = "system") -> dict:
+def add_message_to_store(sender: str, text: str, source: str | MessageSource = MessageSource.SYSTEM.value) -> dict:
     """Add a message to the store and return the new message.
 
     Args:
         sender: Message sender name.
         text: Message text.
-        source: Message source ("chat", "voice", "system", etc.).
+        source: Message source.
     """
     global next_id
+    # Normalize source to a canonical string and restrict to allowed values
+    source_str = normalize_source(source)
+
     with messages_lock:
-        new_msg = {"id": next_id, "sender": sender,
-                   "text": text, "source": source}
-        messages.append(new_msg)
+        new_message = {"id": next_id, "sender": sender,
+                       "text": text, "source": source_str}
+        messages.append(new_message)
         next_id += 1
-        return new_msg
+        return new_message
 
 
 def get_messages_from_store() -> list[dict]:
@@ -135,8 +141,8 @@ def post_message():
         sender = data.get('sender', '')
         text = data.get('text', '')
         source = data.get('source', 'system')
-        new_msg = add_message_to_store(sender, text, source)
-        return jsonify(new_msg), 201
+        new_message = add_message_to_store(sender, text, source)
+        return jsonify(new_message), 201
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), RESPONSE_STATUS_CODE_ERROR
 

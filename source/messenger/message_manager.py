@@ -21,6 +21,8 @@ from config.communcation_settings import (
     RESPONSE_STATUS_CODE_ERROR,
 )
 
+from source.messenger.message_source import MessageSource, normalize_source
+
 
 class MessageManager:
     """Manager class for controlling ChatWindow in a separate process.
@@ -125,13 +127,13 @@ class MessageManager:
         # Check if process is still alive
         return self.process.poll() is None
 
-    def send_message(self, sender: str, text: str, source: str = "system") -> Optional[int]:
+    def send_message(self, sender: str, text: str, source: Union[str, MessageSource] = MessageSource.SYSTEM.value) -> Optional[int]:
         """Send a message to the ChatWindow.
 
         Args:
             sender: Message sender name.
             text: Message text.
-            source: Message source ("chat", "voice", "system", etc.). Defaults to "system".
+            source: Message source.
 
         Returns:
             Message ID if successful, None otherwise.
@@ -139,7 +141,8 @@ class MessageManager:
         try:
             response = requests.post(
                 f"{self.base_url}/messages",
-                json={"sender": sender, "text": text, "source": source},
+                json={"sender": sender, "text": text,
+                      "source": normalize_source(source)},
                 timeout=5
             )
             if response.status_code == 201:
