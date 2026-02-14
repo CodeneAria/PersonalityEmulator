@@ -153,6 +153,7 @@ class SpeechRecognizer:
 
         audio_buffer = []
         is_speaking = False
+        prev_voice_active = False
         self.is_running = True
 
         try:
@@ -162,12 +163,25 @@ class SpeechRecognizer:
                     voice_active = self.voice_input_active
 
                 if not voice_active:
-                    # Voice input not active - clear buffer and wait
+                    # Voice input not active - read and discard audio
+                    # to prevent buffer buildup in the stream
                     if audio_buffer:
                         audio_buffer = []
                         is_speaking = False
-                    time.sleep(0.05)
+                    try:
+                        self.stream.read(
+                            self.chunk, exception_on_overflow=False)
+                    except Exception:
+                        pass
+                    prev_voice_active = False
                     continue
+
+                # Transition from inactive to active
+                # - reset VAD internal state for a clean start
+                if not prev_voice_active:
+                    if hasattr(self.vad_model, 'reset_states'):
+                        self.vad_model.reset_states()
+                    prev_voice_active = True
 
                 # Read audio chunk
                 audio_chunk = self.stream.read(
