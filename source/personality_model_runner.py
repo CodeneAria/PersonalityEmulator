@@ -181,7 +181,7 @@ class PersonalityModelRunner:
                         if not text or sender.lower() == "assistant":
                             continue
 
-                        print(f"[Runner] Received from {sender}: {text}")
+                        # print(f"[Runner] Received from {sender}: {text}")
 
                         # Check for exit command
                         if text.strip().lower() in ("exit", "quit"):
@@ -215,10 +215,9 @@ class PersonalityModelRunner:
                                     self.message_manager.update_message(
                                         message_id, response_text)
 
-                            # Log final response
-                            if response_text:
-                                print(
-                                    f"[Runner] Response completed: {response_text}")
+                            # if response_text:
+                            #     print(
+                            #         f"[Runner] Response completed: {response_text}")
                         except Exception as e:
                             error_msg = f"Error: {e}"
                             if message_id is not None:
