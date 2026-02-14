@@ -25,6 +25,10 @@ import pyaudio
 
 from source.voice.listener.speech_recognizer import SpeechRecognizer
 
+from config.person_settings import (
+    WHISPER_MODEL_NAME,
+)
+
 
 def _has_input_device() -> bool:
     """Check if any audio input device is available."""
@@ -50,7 +54,7 @@ def test_speech_recognizer_initialization():
     recognizer = SpeechRecognizer()
 
     assert recognizer is not None
-    assert recognizer.model_id == "RoachLin/kotoba-whisper-v2.2-faster"
+    assert recognizer.model_id == WHISPER_MODEL_NAME
     assert recognizer.rate == 16000
     assert recognizer.chunk == 512
     assert recognizer.channels == 1

@@ -24,6 +24,10 @@ from config.communcation_settings import (
     RESPONSE_STATUS_CODE_ERROR,
 )
 
+from config.person_settings import (
+    WHISPER_MODEL_NAME,
+)
+
 
 class SpeechRecognizer:
     """Class for recognizing speech from microphone input.
@@ -34,7 +38,7 @@ class SpeechRecognizer:
 
     def __init__(
         self,
-        model_id: str = "RoachLin/kotoba-whisper-v2.2-faster",
+        model_id: str = WHISPER_MODEL_NAME,
         device: Optional[str] = None,
         compute_type: str = "float16",
         rate: int = 16000,
