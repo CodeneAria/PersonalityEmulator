@@ -29,6 +29,7 @@ apt install -y -q \
     xvfb \
     clang-format \
     nano \
+    p7zip-full \
     pybind11-dev \
     libasound2-dev \
     portaudio19-dev \

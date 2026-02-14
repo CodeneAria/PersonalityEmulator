@@ -5,6 +5,10 @@ COPY install_ubuntu_apps.sh /
 RUN chmod +x /install_ubuntu_apps.sh && \
     /install_ubuntu_apps.sh
 
+COPY install_voicevox.sh /
+RUN chmod +x /install_voicevox.sh && \
+    /install_voicevox.sh
+
 COPY install_python_packages.sh /
 
 RUN chmod +x /install_python_packages.sh && \
