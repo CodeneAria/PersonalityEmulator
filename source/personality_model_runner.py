@@ -14,7 +14,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 from source.kobold_cpp.koboldcpp_manager import KoboldCppManager
-from source.speaker.voice_manager import VoiceManager
+from source.voice.voice_manager import VoiceManager
 
 from config.person_settings import (
     KOBOLD_CPP_SIGNATURE,

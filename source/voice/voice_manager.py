@@ -109,8 +109,12 @@ class VoiceManager:
         if self.voice_gen_process is not None:
             return True
 
-        voice_generator_script = Path(
-            __file__).resolve().parent / "voice_generator.py"
+        path = Path.cwd() / "source" / "voice" / \
+            "speaker" / "voice_generator.py"
+        if not path.is_file():
+            raise FileNotFoundError(
+                f"VoiceGenerator script not found at {path}")
+        voice_generator_script = path
 
         try:
             self.voice_gen_process = subprocess.Popen(
@@ -153,8 +157,12 @@ class VoiceManager:
         if self.audio_player_process is not None:
             return True
 
-        audio_speaker_script = Path(
-            __file__).resolve().parent / "audio_player.py"
+        path = Path.cwd() / "source" / "voice" / \
+            "speaker" / "audio_player.py"
+        if not path.is_file():
+            raise FileNotFoundError(
+                f"AudioPlayer script not found at {path}")
+        audio_speaker_script = path
 
         try:
             self.audio_player_process = subprocess.Popen(

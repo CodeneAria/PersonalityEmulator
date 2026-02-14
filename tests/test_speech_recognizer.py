@@ -23,7 +23,7 @@ import time
 import pytest
 import pyaudio
 
-from source.listener.speech_recognizer import SpeechRecognizer
+from source.voice.listener.speech_recognizer import SpeechRecognizer
 
 
 def _has_input_device() -> bool:
