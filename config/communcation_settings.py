@@ -5,8 +5,6 @@ VOICEVOX_PORT = 50021
 AUDIO_QUERY_ENDPOINT = f"http://{HOSTNAME}:{VOICEVOX_PORT}/audio_query"
 SYNTHESIS_ENDPOINT = f"http://{HOSTNAME}:{VOICEVOX_PORT}/synthesis"
 
-USER_DICTIONARY_PATH = "./voicevox/user_dictionary.json"
-
 # Voice process
 VOICE_GENERATOR_PORT = 50100
 AUDIO_PLAYER_PORT = 50101

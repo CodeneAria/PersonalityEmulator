@@ -20,13 +20,13 @@ from config.communcation_settings import (
     SYNTHESIS_ENDPOINT,
     HOSTNAME,
     VOICEVOX_PORT,
-    USER_DICTIONARY_PATH,
 )
 
 from config.person_settings import (
     SPEAKER_ID,
     VOICE_SPEED_SCALE,
     VOICE_PITCH_SCALE,
+    VOICEVOX_DICTIONARY_PATH,
 )
 
 
@@ -115,7 +115,7 @@ class VoicevoxCommunicator(VoiceSynthesizerInterface):
                     f"[VoicevoxCommunicator] Error starting VOICEVOX: {e}", file=sys.stderr)
 
         # Post user dictionary to VOICEVOX
-        post_command = f'curl -X POST "http://{HOSTNAME}:{VOICEVOX_PORT}/import_user_dict?override=true" -H "Content-Type: application/json" --data-binary @"{USER_DICTIONARY_PATH}"'
+        post_command = f'curl -X POST "http://{HOSTNAME}:{VOICEVOX_PORT}/import_user_dict?override=true" -H "Content-Type: application/json" --data-binary @"{VOICEVOX_DICTIONARY_PATH}"'
         try:
             subprocess.run(post_command, shell=True, check=True,
                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)

@@ -21,8 +21,9 @@ from config.communcation_settings import (
     VOICE_GENERATOR_PORT,
     HOSTNAME,
 )
+
 from config.person_settings import (
-    WORD_DICTIONARY_PATH,
+    VOICEVOX_DICTIONARY_PATH,
 )
 
 
@@ -41,7 +42,7 @@ class VoiceGenerator:
         """
 
         self.synthesizer = synthesizer if synthesizer is not None else VoicevoxCommunicator(
-            user_dict_path=WORD_DICTIONARY_PATH)
+            user_dict_path=VOICEVOX_DICTIONARY_PATH)
         self.text_queue: list[str] = []
         self.audio_data_queue: list[bytes] = []
 

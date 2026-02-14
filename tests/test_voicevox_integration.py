@@ -31,7 +31,9 @@ from source.voice.speaker.voicevox_communicator import VoicevoxCommunicator
 from config.communcation_settings import (
     HOSTNAME,
     VOICEVOX_PORT,
-    USER_DICTIONARY_PATH
+)
+from config.person_settings import (
+    VOICEVOX_DICTIONARY_PATH,
 )
 
 voicevox_kill_command = "pkill -f voicevox"
@@ -53,7 +55,7 @@ except Exception as e:
 time.sleep(5)
 
 # post user dictionary to VOICEVOX
-post_command = f"curl -X POST \"http://{HOSTNAME}:{VOICEVOX_PORT}/import_user_dict?override=true\" -H \"Content-Type: application/json\" --data-binary @\"{USER_DICTIONARY_PATH}\""
+post_command = f"curl -X POST \"http://{HOSTNAME}:{VOICEVOX_PORT}/import_user_dict?override=true\" -H \"Content-Type: application/json\" --data-binary @\"{VOICEVOX_DICTIONARY_PATH}\""
 try:
     subprocess.run(post_command, shell=True, check=True,
                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
