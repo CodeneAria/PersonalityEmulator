@@ -266,22 +266,12 @@ class PersonalityModelRunner:
         if len(messages) > self.processed_message_count:
             for i in range(self.processed_message_count, len(messages)):
                 msg = messages[i]
-                sender = msg.get("sender", "")
                 text = msg.get("text", "")
                 source = msg.get("source", MessageSource.SYSTEM.value)
 
-                # Skip system messages, assistant messages, or voice input display messages
                 if source in (MessageSource.VOICE.value, MessageSource.SYSTEM.value):
                     continue
 
-                # Check for exit command
-                if text.strip().lower() in ("exit", "quit"):
-                    self.message_manager.send_message(
-                        sender="System", text="Shutting down...", source=MessageSource.SYSTEM.value)
-                    self.core_manager.is_running = False
-                    break
-
-                # Process user input
                 self._process_user_input(text, source=source)
 
             self.processed_message_count = len(messages)
