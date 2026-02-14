@@ -286,6 +286,30 @@ class SpeechRecognizer:
         """Clear the sentence queue."""
         self.sentence_queue.clear()
 
+    def get_all_sentences_and_clear(self) -> str:
+        """Get all sentences from queue, combine them, and clear the queue.
+
+        Each sentence is appended with '。' if it doesn't already end with one,
+        then all sentences are joined together.
+
+        Returns:
+            Combined sentence string, or empty string if queue is empty.
+        """
+        if not self.sentence_queue:
+            return ""
+
+        combined = ""
+        for sentence in self.sentence_queue:
+            sentence = sentence.strip()
+            if sentence:
+                # Add '。' if not already ending with sentence-ending punctuation
+                if not sentence.endswith(('。', '！', '？', '!', '?')):
+                    sentence += '。'
+                combined += sentence
+
+        self.sentence_queue.clear()
+        return combined
+
     def set_voice_input_active(self, active: bool) -> None:
         """Set the voice input active state.
 
@@ -419,6 +443,17 @@ def set_voice_input_active():
         return jsonify({"active": speech_recognizer.get_voice_input_active()}), RESPONSE_STATUS_CODE_SUCCESS
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), RESPONSE_STATUS_CODE_ERROR
+
+
+@app.route('/get_all_sentences', methods=['GET'])
+def get_all_sentences():
+    """Endpoint to get all sentences from queue and clear it.
+
+    Response JSON format:
+        {"text": "combined sentences"}
+    """
+    combined_text = speech_recognizer.get_all_sentences_and_clear()
+    return jsonify({"text": combined_text}), RESPONSE_STATUS_CODE_SUCCESS
 
 
 if __name__ == '__main__':

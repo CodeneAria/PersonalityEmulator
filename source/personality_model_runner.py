@@ -226,22 +226,21 @@ class PersonalityModelRunner:
                             print("[Runner] Voice input activated")
                         else:
                             print("[Runner] Voice input deactivated")
+                            # When voice input is deactivated, get all accumulated sentences
+                            try:
+                                combined_text = self.vm.get_all_recognized_sentences()
+                                if combined_text and combined_text.strip():
+                                    print(
+                                        f"[Runner] Voice input received (combined): {combined_text}")
+                                    self._process_user_input(
+                                        combined_text, sender="Voice")
+                            except Exception as e:
+                                print(
+                                    f"[Runner] Failed to get combined sentences: {e}", file=sys.stderr)
                     except Exception as e:
                         print(
                             f"[Runner] Failed to update voice input state: {e}", file=sys.stderr)
                     self._prev_voice_input_active = current_voice_active
-
-                # Poll for recognized speech (check even when voice is inactive to get queued results)
-                try:
-                    recognized_text = self.vm.get_recognized_sentence()
-                    if recognized_text and recognized_text.strip():
-                        print(
-                            f"[Runner] Voice input received: {recognized_text}")
-                        self._process_user_input(
-                            recognized_text, sender="Voice")
-                except Exception as e:
-                    print(
-                        f"[Runner] Failed to get recognized sentence: {e}", file=sys.stderr)
 
                 # Poll for new messages from browser
                 messages = self.message_manager.get_messages()

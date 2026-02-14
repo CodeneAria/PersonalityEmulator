@@ -397,6 +397,27 @@ class VoiceManager:
         except requests.exceptions.RequestException:
             return None
 
+    def get_all_recognized_sentences(self) -> Optional[str]:
+        """Get all recognized sentences from SpeechRecognizer and clear the queue.
+
+        Returns:
+            Combined sentence string, or None if error occurred.
+        """
+        if self.speech_recognizer_url is None:
+            return None
+        try:
+            response = requests.get(
+                f"{self.speech_recognizer_url}/get_all_sentences",
+                timeout=3
+            )
+            if response.status_code == RESPONSE_STATUS_CODE_SUCCESS:
+                data = response.json()
+                text = data.get("text", "")
+                return text if text else None
+            return None
+        except requests.exceptions.RequestException:
+            return None
+
     def get_user_input_sentence(self) -> Optional[str]:
         """Retrieve the latest recognized sentence from SpeechRecognizer.
            This method first tries to get the sentence via HTTP from the SpeechRecognizer.
