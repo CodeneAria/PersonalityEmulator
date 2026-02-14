@@ -35,11 +35,18 @@ voice_input_active = False
 voice_input_lock = threading.Lock()
 
 
-def add_message_to_store(sender: str, text: str) -> dict:
-    """Add a message to the store and return the new message."""
+def add_message_to_store(sender: str, text: str, source: str = "system") -> dict:
+    """Add a message to the store and return the new message.
+
+    Args:
+        sender: Message sender name.
+        text: Message text.
+        source: Message source ("chat", "voice", "system", etc.).
+    """
     global next_id
     with messages_lock:
-        new_msg = {"id": next_id, "sender": sender, "text": text}
+        new_msg = {"id": next_id, "sender": sender,
+                   "text": text, "source": source}
         messages.append(new_msg)
         next_id += 1
         return new_msg
@@ -108,7 +115,7 @@ def get_messages():
     """Endpoint to get all messages.
 
     Response JSON format:
-        [{"id": int, "sender": str, "text": str}, ...]
+        [{"id": int, "sender": str, "text": str, "source": str}, ...]
     """
     return jsonify(get_messages_from_store()), RESPONSE_STATUS_CODE_SUCCESS
 
@@ -118,16 +125,17 @@ def post_message():
     """Endpoint to post a new message.
 
     Request JSON format:
-        {"sender": str, "text": str}
+        {"sender": str, "text": str, "source": str (optional)}
 
     Response JSON format:
-        {"id": int, "sender": str, "text": str}
+        {"id": int, "sender": str, "text": str, "source": str}
     """
     try:
         data = request.get_json() or {}
         sender = data.get('sender', '')
         text = data.get('text', '')
-        new_msg = add_message_to_store(sender, text)
+        source = data.get('source', 'system')
+        new_msg = add_message_to_store(sender, text, source)
         return jsonify(new_msg), 201
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), RESPONSE_STATUS_CODE_ERROR

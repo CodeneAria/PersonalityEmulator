@@ -125,12 +125,13 @@ class MessageManager:
         # Check if process is still alive
         return self.process.poll() is None
 
-    def send_message(self, sender: str, text: str) -> Optional[int]:
+    def send_message(self, sender: str, text: str, source: str = "system") -> Optional[int]:
         """Send a message to the ChatWindow.
 
         Args:
             sender: Message sender name.
             text: Message text.
+            source: Message source ("chat", "voice", "system", etc.). Defaults to "system".
 
         Returns:
             Message ID if successful, None otherwise.
@@ -138,7 +139,7 @@ class MessageManager:
         try:
             response = requests.post(
                 f"{self.base_url}/messages",
-                json={"sender": sender, "text": text},
+                json={"sender": sender, "text": text, "source": source},
                 timeout=5
             )
             if response.status_code == 201:

@@ -115,7 +115,7 @@ async function sendMessage() {
   await fetch("/messages", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ sender, text })
+    body: JSON.stringify({ sender, text, source: "chat" })
   });
 
   document.getElementById("text").value = "";

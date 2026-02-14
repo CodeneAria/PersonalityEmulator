@@ -154,7 +154,11 @@ class PersonalityModelRunner:
 
         # Display user's voice input in chat first (before assistant response)
         if sender == "Voice":
-            self.message_manager.send_message("User (Voice)", text)
+            self.message_manager.send_message(
+                sender="User (Voice)",
+                text=text,
+                source="voice"
+            )
 
         # Clear voice queues for new response
         try:
@@ -164,7 +168,7 @@ class PersonalityModelRunner:
 
         # Send initial empty message to get message ID
         message_id = self.message_manager.send_message(
-            PERSONALITY_MODEL_NAME, "")
+            PERSONALITY_MODEL_NAME, "", source="system")
 
         # Generate streaming response
         response_text = ""
@@ -181,7 +185,8 @@ class PersonalityModelRunner:
             if message_id is not None:
                 self.message_manager.update_message(message_id, error_msg)
             else:
-                self.message_manager.send_message("System", error_msg)
+                self.message_manager.send_message(
+                    sender="System", text=error_msg, source="system")
             print(f"\n[Runner] Generation error: {e}", file=sys.stderr)
 
     def run(self) -> int:
@@ -258,15 +263,16 @@ class PersonalityModelRunner:
                 msg = messages[i]
                 sender = msg.get("sender", "")
                 text = msg.get("text", "")
+                source = msg.get("source", "system")
 
                 # Skip system messages, assistant messages, or voice input display messages
-                if not text or sender.lower() in (PERSONALITY_MODEL_NAME.lower(), "user (voice)"):
+                if source in ("voice", "system"):
                     continue
 
                 # Check for exit command
                 if text.strip().lower() in ("exit", "quit"):
                     self.message_manager.send_message(
-                        "System", "Shutting down...")
+                        sender="System", text="Shutting down...", source="system")
                     self.core_manager.is_running = False
                     break
 
