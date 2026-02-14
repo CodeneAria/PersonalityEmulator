@@ -160,8 +160,10 @@ class PersonalityModelRunner:
             print("Failed to start MessageManager", file=sys.stderr)
             return 3
 
-        print("[Runner] Browser chat window started. Waiting for messages...")
-        print("[Runner] Press Ctrl-C to quit")
+        # Print URL for browser access
+        chat_url = f"http://{self.message_manager.host}:{self.message_manager.port}"
+        print(f"[Runner] Chat window started at: {chat_url}")
+        print("[Runner] Waiting for messages... (Press Ctrl-C to quit)")
 
         try:
             while self.core_manager.is_running:
