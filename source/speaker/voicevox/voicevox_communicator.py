@@ -12,12 +12,15 @@ import json
 from abc import ABC, abstractmethod
 from typing import Optional
 import requests
+import subprocess
+import time
 
 from config.communcation_settings import (
     AUDIO_QUERY_ENDPOINT,
     SYNTHESIS_ENDPOINT,
     HOSTNAME,
     VOICEVOX_PORT,
+    USER_DICTIONARY_PATH,
 )
 
 from config.person_settings import (
@@ -66,9 +69,38 @@ class VoicevoxCommunicator(VoiceSynthesizerInterface):
         self.speaker_id = speaker_id
         self.speed_scale = speed_scale
         self.pitch_scale = VOICE_PITCH_SCALE
+        self._voicevox_process = None
 
         # Base URL for VOICEVOX API (constructed from HOSTNAME and VOICEVOX_PORT)
         self._base_url = f"http://{HOSTNAME}:{VOICEVOX_PORT}"
+
+        # Start VOICEVOX server process
+        subprocess_command = f"/opt/voicevox_engine/linux-nvidia/run --host {HOSTNAME} --port {VOICEVOX_PORT}"
+        try:
+            self._voicevox_process = subprocess.Popen(
+                subprocess_command,
+                shell=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            print("[VoicevoxCommunicator] VOICEVOX server started")
+        except Exception as e:
+            print(
+                f"[VoicevoxCommunicator] Error starting VOICEVOX: {e}", file=sys.stderr)
+
+        # Wait for VOICEVOX server to be ready
+        time.sleep(5)
+
+        # Post user dictionary to VOICEVOX
+        post_command = f'curl -X POST "http://{HOSTNAME}:{VOICEVOX_PORT}/import_user_dict?override=true" -H "Content-Type: application/json" --data-binary @"{USER_DICTIONARY_PATH}"'
+        try:
+            subprocess.run(post_command, shell=True, check=True,
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            print(
+                "[VoicevoxCommunicator] User dictionary imported successfully via curl")
+        except Exception as e:
+            print(
+                f"[VoicevoxCommunicator] Error posting user dictionary to VOICEVOX: {e}", file=sys.stderr)
 
         # If a user dictionary path is provided, attempt to read and import it
         if user_dict_path:
@@ -86,7 +118,7 @@ class VoicevoxCommunicator(VoiceSynthesizerInterface):
                     )
                     res.raise_for_status()
                     print(
-                        "[VoicevoxCommunicator] User dictionary imported successfully")
+                        "[VoicevoxCommunicator] User dictionary imported successfully via API")
                 except requests.exceptions.RequestException as e:
                     print(
                         f"[VoicevoxCommunicator] Failed to import user dict: {e}")
@@ -133,3 +165,14 @@ class VoicevoxCommunicator(VoiceSynthesizerInterface):
             print(
                 f"[VoicevoxCommunicator] Failed to synthesize text '{text}': {e}")
             return None
+
+    def __del__(self):
+        """Clean up VOICEVOX server process when this object is destroyed."""
+        if self._voicevox_process is not None:
+            try:
+                voicevox_kill_command = "pkill -f voicevox"
+                subprocess.run(voicevox_kill_command, shell=True)
+                print("[VoicevoxCommunicator] VOICEVOX server stopped")
+            except Exception as e:
+                print(
+                    f"[VoicevoxCommunicator] Error stopping VOICEVOX: {e}", file=sys.stderr)
