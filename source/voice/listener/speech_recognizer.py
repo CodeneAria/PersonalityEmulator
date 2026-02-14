@@ -235,6 +235,16 @@ class SpeechRecognizer:
             The latest recognized sentence, or None if queue is empty.
         """
         if self.sentence_queue:
+            return self.sentence_queue.pop(-1)
+        return None
+
+    def get_oldest_sentence(self) -> Optional[str]:
+        """Get the oldest recognized sentence from the queue.
+
+        Returns:
+            The oldest recognized sentence, or None if queue is empty.
+        """
+        if self.sentence_queue:
             return self.sentence_queue.pop(0)
         return None
 

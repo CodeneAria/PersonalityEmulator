@@ -5,7 +5,7 @@ This test will:
 - instantiate `SpeechRecognizer` and load models
 - start recognition in a background thread for a short period
 - allow the user to speak during that period
-- verify that recognized sentences can be retrieved via get_latest_sentence
+- verify that recognized sentences can be retrieved via get_oldest_sentence
 - properly stop and clean up resources
 
 Run with:
@@ -131,7 +131,7 @@ def test_speech_recognizer_recognition_workflow():
     if len(recognizer) > 0:
         print("[Test] Retrieved sentences:")
         while not recognizer.is_empty():
-            sentence = recognizer.get_latest_sentence()
+            sentence = recognizer.get_oldest_sentence()
             assert sentence is not None
             assert isinstance(sentence, str)
             assert len(sentence) > 0
@@ -144,7 +144,7 @@ def test_speech_recognizer_recognition_workflow():
     assert len(recognizer) == 1
     assert not recognizer.is_empty()
 
-    sentence = recognizer.get_latest_sentence()
+    sentence = recognizer.get_oldest_sentence()
     assert sentence == "test sentence"
     assert recognizer.is_empty()
 
@@ -162,7 +162,7 @@ def test_speech_recognizer_queue_operations():
     # Initially empty
     assert recognizer.is_empty() == True
     assert len(recognizer) == 0
-    assert recognizer.get_latest_sentence() is None
+    assert recognizer.get_oldest_sentence() is None
 
     # Add items manually
     recognizer.sentence_queue.append("first sentence")
@@ -173,10 +173,10 @@ def test_speech_recognizer_queue_operations():
     assert len(recognizer) == 3
 
     # Get sentences in FIFO order
-    assert recognizer.get_latest_sentence() == "first sentence"
+    assert recognizer.get_oldest_sentence() == "first sentence"
     assert len(recognizer) == 2
 
-    assert recognizer.get_latest_sentence() == "second sentence"
+    assert recognizer.get_oldest_sentence() == "second sentence"
     assert len(recognizer) == 1
 
     # Get queue copy
