@@ -27,7 +27,7 @@ else:
     LLM_MODEL_DOWNLOAD_PATH = "https://huggingface.co/ggml-org/gemma-3-4b-it-GGUF/resolve/main/gemma-3-4b-it-Q4_K_M.gguf"
 
 
-LLM_N_CTX = 2048
+LLM_N_CTX = 16384
 LLM_N_THREADS = 8
 LLM_N_GPU_LAYERS = -1
 LLM_SYSTEM_PROMPT = "あなたは優秀なアシスタントです。"
