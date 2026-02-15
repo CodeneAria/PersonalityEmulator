@@ -47,8 +47,9 @@ class MessageManager:
         self.port = port
         self.base_url = f"http://{host}:{port}"
         self.process: Optional[subprocess.Popen] = None
-        # Local cache of voice input button state
+
         self.voice_input_active: bool = False
+        self.voice_output_stop_flag: bool = False
 
     def start(self, wait_time: float = 2.0) -> bool:
         """Start ChatWindow subprocess.
@@ -294,6 +295,49 @@ class MessageManager:
             return False
         except requests.exceptions.RequestException as e:
             print(f"Failed to set voice input state: {e}")
+            return False
+
+    def update_voice_output_stop_flag(self) -> bool:
+        """Query the ChatWindow server for current voice output stop flag and update local cache.
+
+        Returns:
+            The current voice output stop flag (True if stop requested).
+        """
+        try:
+            response = requests.get(
+                f"{self.base_url}/voice_output_stop_flag",
+                timeout=5
+            )
+            if response.status_code == RESPONSE_STATUS_CODE_SUCCESS:
+                data = response.json() or {}
+                self.voice_output_stop_flag = bool(data.get("stop", False))
+            return self.voice_output_stop_flag
+        except requests.exceptions.RequestException as e:
+            print(f"Failed to get voice output stop flag: {e}")
+            return self.voice_output_stop_flag
+
+    def set_voice_output_stop_flag(self, stop: bool) -> bool:
+        """Set the voice output stop flag on the ChatWindow server and update local cache.
+
+        Args:
+            stop: True to request stop, False otherwise.
+
+        Returns:
+            True if successful, False otherwise.
+        """
+        try:
+            response = requests.post(
+                f"{self.base_url}/voice_output_stop_flag",
+                json={"stop": bool(stop)},
+                timeout=5
+            )
+            if response.status_code == RESPONSE_STATUS_CODE_SUCCESS:
+                data = response.json() or {}
+                self.voice_output_stop_flag = bool(data.get("stop", False))
+                return True
+            return False
+        except requests.exceptions.RequestException as e:
+            print(f"Failed to set voice output stop flag: {e}")
             return False
 
     def __enter__(self):

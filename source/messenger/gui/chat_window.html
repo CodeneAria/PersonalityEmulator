@@ -50,10 +50,11 @@ body {
 <div id="messages"></div>
 
 <div id="input">
-  <input id="sender" placeholder="話者 / Speaker" style="width:120px">
+  <input id="sender" placeholder="話者 / Speaker" style="width:100px">
   <textarea id="text" rows="3" style="flex:1"></textarea>
    <button onclick="sendMessage()">送信 / Send</button>
-   <button id="voice-btn" style="width:96px">音声入力 / Voice Input</button>
+   <button id="voice-btn" style="width:80px">音声入力 / Voice Input</button>
+   <button id="stop-btn" style="width:80px">発声停止 / Stop Speak</button>
 </div>
 
 <script>
@@ -150,13 +151,56 @@ function setVoiceActive(active) {
 
 // Mouse events
 voiceBtn.addEventListener('mousedown', () => setVoiceActive(true));
-document.addEventListener('mouseup', () => setVoiceActive(false));
 voiceBtn.addEventListener('mouseleave', () => setVoiceActive(false));
 
 // Touch events for mobile
 voiceBtn.addEventListener('touchstart', (e) => { e.preventDefault(); setVoiceActive(true); }, { passive: false });
-document.addEventListener('touchend', () => setVoiceActive(false));
-document.addEventListener('touchcancel', () => setVoiceActive(false));
+
+// Stop speak button: active only while pressed (mouse or touch)
+const stopBtn = document.getElementById('stop-btn');
+let stopActive = false;
+
+function setStopActive(active) {
+  if (stopActive === active) return;
+  stopActive = active;
+  if (stopActive) {
+    stopBtn.style.background = '#f44336';
+    stopBtn.style.color = 'white';
+  } else {
+    stopBtn.style.background = '';
+    stopBtn.style.color = '';
+  }
+
+  // Notify server of state change
+  fetch('/voice_output_stop_flag', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ stop: stopActive })
+  }).catch(() => {
+    // ignore network errors for now
+  });
+}
+
+// Mouse events
+stopBtn.addEventListener('mousedown', () => setStopActive(true));
+stopBtn.addEventListener('mouseleave', () => setStopActive(false));
+
+// Touch events for mobile
+stopBtn.addEventListener('touchstart', (e) => { e.preventDefault(); setStopActive(true); }, { passive: false });
+
+// Global mouseup and touchend handlers for both buttons
+document.addEventListener('mouseup', () => {
+  setVoiceActive(false);
+  setStopActive(false);
+});
+document.addEventListener('touchend', () => {
+  setVoiceActive(false);
+  setStopActive(false);
+});
+document.addEventListener('touchcancel', () => {
+  setVoiceActive(false);
+  setStopActive(false);
+});
 
 setInterval(fetchMessages, 500);
 </script>

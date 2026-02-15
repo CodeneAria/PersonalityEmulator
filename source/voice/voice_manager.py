@@ -71,6 +71,9 @@ class VoiceManager:
         self.clear_event = threading.Event()
         self.clear_before_count = 0  # Number of items in queue when clear was requested
 
+        # Voice output stop flag tracking
+        self._prev_voice_output_stop_flag: bool = False
+
     def start(self, wait_time: float = 5.0, start_audio_player: bool = True, start_speech_recognizer: bool = True) -> bool:
         """Start VoiceGenerator and optionally AudioPlayer subprocesses.
 
@@ -594,6 +597,34 @@ class VoiceManager:
         except:
             return False
 
+    def handle_voice_output_stop_flag(self, current_stop_flag: bool) -> None:
+        """Handle voice output stop flag changes.
+
+        When flag changes from False to True, clears voice queues and stops audio playback.
+
+        Args:
+            current_stop_flag: Current voice output stop flag state.
+        """
+        if current_stop_flag and not self._prev_voice_output_stop_flag:
+            # Flag changed from False to True - stop everything
+            print(
+                "[VoiceManager] Voice output stop requested - clearing queues and stopping playback")
+
+            # Clear voice generation queues
+            try:
+                self.clear_queue()
+            except Exception as e:
+                print(f"[VoiceManager] Failed to clear queue: {e}")
+
+            # Stop audio playback
+            try:
+                self.stop_audio_playback()
+            except Exception as e:
+                print(f"[VoiceManager] Failed to stop audio playback: {e}")
+
+        # Update previous state
+        self._prev_voice_output_stop_flag = current_stop_flag
+
     def _play_audio_sync(self) -> bool:
         """Get audio and play it synchronously.
 
@@ -741,6 +772,8 @@ class VoiceManager:
         Returns:
             True if successful, False otherwise.
         """
+        self.text_queue.queue.clear()
+
         try:
             response = requests.post(f"{self.voice_gen_url}/clear", timeout=5)
 

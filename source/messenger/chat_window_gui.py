@@ -36,6 +36,9 @@ messages_lock = threading.Lock()
 # Voice input state
 voice_input_active = False
 voice_input_lock = threading.Lock()
+# Voice output stop flag
+voice_output_stop_flag = False
+voice_output_stop_lock = threading.Lock()
 
 
 def add_message_to_store(sender: str, text: str, source: str | MessageSource = MessageSource.SYSTEM.value) -> dict:
@@ -108,6 +111,20 @@ def get_voice_input_state() -> dict:
     """Return current voice input active state."""
     with voice_input_lock:
         return {"active": voice_input_active}
+
+
+def set_voice_output_stop_flag(stop: bool) -> dict:
+    """Set the voice output stop flag and return the current state."""
+    global voice_output_stop_flag
+    with voice_output_stop_lock:
+        voice_output_stop_flag = bool(stop)
+        return {"stop": voice_output_stop_flag}
+
+
+def get_voice_output_stop_flag() -> dict:
+    """Return current voice output stop flag state."""
+    with voice_output_stop_lock:
+        return {"stop": voice_output_stop_flag}
 
 
 @flask_app.route("/")
@@ -198,6 +215,28 @@ def voice_input_state_post():
         data = request.get_json() or {}
         active = bool(data.get('active', False))
         new_state = set_voice_input_state(active)
+        return jsonify(new_state), RESPONSE_STATUS_CODE_SUCCESS
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), RESPONSE_STATUS_CODE_ERROR
+
+
+@flask_app.route('/voice_output_stop_flag', methods=['GET'])
+def voice_output_stop_flag_get():
+    """Return the voice output stop flag state."""
+    return jsonify(get_voice_output_stop_flag()), RESPONSE_STATUS_CODE_SUCCESS
+
+
+@flask_app.route('/voice_output_stop_flag', methods=['POST'])
+def voice_output_stop_flag_post():
+    """Set the voice output stop flag state.
+
+    Request JSON: {"stop": bool}
+    Response JSON: {"stop": bool}
+    """
+    try:
+        data = request.get_json() or {}
+        stop = bool(data.get('stop', False))
+        new_state = set_voice_output_stop_flag(stop)
         return jsonify(new_state), RESPONSE_STATUS_CODE_SUCCESS
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), RESPONSE_STATUS_CODE_ERROR

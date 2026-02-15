@@ -231,6 +231,11 @@ class PersonalityModelRunner:
 
                 self._handle_voice_input_state(current_voice_active)
 
+                # Handle voice output stop flag
+                current_stop_flag = self.message_manager.update_voice_output_stop_flag()
+                self.voice_manager.handle_voice_output_stop_flag(
+                    current_stop_flag)
+
                 self.processed_message_count = self.message_manager.process_pending_messages(
                     self._process_user_input, self.processed_message_count)
 
