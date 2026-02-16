@@ -37,7 +37,6 @@ else:
 LLM_N_CTX = 16384
 LLM_N_THREADS = 8
 LLM_N_GPU_LAYERS = -1
-LLM_SYSTEM_PROMPT = "あなたは優秀なアシスタントです。"
 
 # Whisper Model Settings
 WHISPER_TRANSCRIBE_PREFIX = "Whisper Transcribe Output:"

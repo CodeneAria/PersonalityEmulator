@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 sys.path.append(str(Path(__file__).resolve().parents[2]))
 
@@ -18,13 +19,14 @@ import subprocess
 
 from llama_cpp import Llama
 
+from source.core.prompt_generator import PromptGenerator
+
 from config.person_settings import (
     LLM_MODEL_PATH,
     LLM_MODEL_DOWNLOAD_PATH,
     LLM_N_CTX,
     LLM_N_THREADS,
     LLM_N_GPU_LAYERS,
-    LLM_SYSTEM_PROMPT,
     PERSONALITY_CORE_SIGNATURE,
 )
 
@@ -43,7 +45,6 @@ class PersonalityCoreManager:
         n_ctx: int = LLM_N_CTX,
         n_threads: int = LLM_N_THREADS,
         n_gpu_layers: int = LLM_N_GPU_LAYERS,
-        system_prompt: str = LLM_SYSTEM_PROMPT,
     ):
         """Initialize PersonalityCoreManager.
 
@@ -52,13 +53,12 @@ class PersonalityCoreManager:
             n_ctx: Context window size.
             n_threads: Number of CPU threads to use.
             n_gpu_layers: Number of layers to offload to GPU (-1 for all).
-            system_prompt: System prompt for the conversation.
         """
         self.model_path = model_path
         self.n_ctx = n_ctx
         self.n_threads = n_threads
         self.n_gpu_layers = n_gpu_layers
-        self.system_prompt = system_prompt
+        self.system_prompt = PromptGenerator().generate_pre_prompt()
 
         self.llm: Optional[Llama] = None
         self.messages: list[dict] = []
