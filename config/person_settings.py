@@ -12,7 +12,7 @@ VOICE_PITCH_SCALE_HAKUREI_REIMU = -0.05
 
 WORLD_INFO_PATH_HAKUREI_REIMU = "./personality/hakurei_reimu/world_info.md"
 PERSON_INFO_PATH_HAKUREI_REIMU = "./personality/hakurei_reimu/person_info.md"
-SCENE_SETTINGS_PATH_HAKUREI_REIMU = "./personality/hakurei_reimu/scene_general_talk.json"
+SCENE_SETTINGS_PATH_HAKUREI_REIMU = "./personality/hakurei_reimu/scene_general_talk.md"
 
 # Personality settings
 SPEAKER_ID = SPEAKER_ID_HAKUREI_REIMU
