@@ -30,6 +30,8 @@ from config.person_settings import (
     PERSONALITY_CORE_SIGNATURE,
 )
 
+SENTENCE_ENDINGS = ['。', '！', '？', '!', '?']
+
 
 class PersonalityCoreManager:
     """Manager class for Llama-based personality model.
@@ -59,6 +61,7 @@ class PersonalityCoreManager:
         self.n_threads = n_threads
         self.n_gpu_layers = n_gpu_layers
         self.system_prompt = PromptGenerator().generate_pre_prompt()
+        # self.system_prompt = ""
 
         self.llm: Optional[Llama] = None
         self.messages: list[dict] = []
@@ -203,10 +206,22 @@ class PersonalityCoreManager:
                 # Yield the chunk for immediate output
                 yield text_chunk
 
-                # Check for sentence boundaries and trigger callback
-                self._process_sentence_buffer(sentence_buffer)
-                # Update buffer to contain only incomplete sentence
-                sentence_buffer = self._get_remaining_buffer(sentence_buffer)
+                sentence_endings = SENTENCE_ENDINGS
+                if any(ending in text_chunk for ending in sentence_endings):
+                    # Find the last sentence-ending character position in the buffer
+                    last_pos = -1
+                    for ending in sentence_endings:
+                        pos = sentence_buffer.rfind(ending)
+                        if pos > last_pos:
+                            last_pos = pos
+
+                    if last_pos != -1:
+                        complete_sentences = sentence_buffer[:last_pos + 1]
+                        sentence_buffer = sentence_buffer[last_pos + 1:]
+
+                        if self.on_sentence_complete:
+                            self.on_sentence_complete(
+                                complete_sentences.strip())
 
         # Process any remaining text in buffer
         if sentence_buffer.strip() and self.on_sentence_complete:
@@ -229,7 +244,7 @@ class PersonalityCoreManager:
             return
 
         # Split by sentence-ending characters
-        sentence_endings = ['。', '！', '？', '!', '?']
+        sentence_endings = SENTENCE_ENDINGS
         sentences = []
         current = ""
 
@@ -253,7 +268,7 @@ class PersonalityCoreManager:
         Returns:
             Text after the last sentence boundary.
         """
-        sentence_endings = ['。', '！', '？', '!', '?']
+        sentence_endings = SENTENCE_ENDINGS
 
         last_end_pos = -1
         for i, char in enumerate(buffer):
