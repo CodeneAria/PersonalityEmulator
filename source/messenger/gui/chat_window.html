@@ -181,26 +181,48 @@ function setStopActive(active) {
   });
 }
 
-// Mouse events
-stopBtn.addEventListener('mousedown', () => setStopActive(true));
-stopBtn.addEventListener('mouseleave', () => setStopActive(false));
+// Toggle stop state on click. The server will clear the flag when polled by
+// the backend; the UI polls the server to observe that and revert the button.
+stopBtn.addEventListener('click', () => {
+  setStopActive(!stopActive);
+});
 
-// Touch events for mobile
-stopBtn.addEventListener('touchstart', (e) => { e.preventDefault(); setStopActive(true); }, { passive: false });
+// Touch support: treat touchstart as a click (prevent default to avoid
+// duplicate events on some devices).
+stopBtn.addEventListener('touchstart', (e) => { e.preventDefault(); setStopActive(!stopActive); }, { passive: false });
 
 // Global mouseup and touchend handlers for both buttons
 document.addEventListener('mouseup', () => {
   setVoiceActive(false);
-  setStopActive(false);
 });
 document.addEventListener('touchend', () => {
   setVoiceActive(false);
-  setStopActive(false);
 });
 document.addEventListener('touchcancel', () => {
   setVoiceActive(false);
-  setStopActive(false);
 });
+
+// Poll server for stop flag so the UI can revert when the flag is consumed
+// by the backend. This keeps the button visually active until the backend
+// has acknowledged the stop request (by polling GET /voice_output_stop_flag).
+async function pollStopFlag() {
+  try {
+    const res = await fetch('/voice_output_stop_flag');
+    const data = await res.json();
+    const serverStop = Boolean(data.stop);
+    // If server reports the flag is cleared but our UI still shows active,
+    // reset the button UI.
+    if (!serverStop && stopActive) {
+      stopActive = false;
+      stopBtn.style.background = '';
+      stopBtn.style.color = '';
+    }
+  } catch (e) {
+    // ignore network errors
+  }
+}
+
+setInterval(pollStopFlag, 500);
 
 setInterval(fetchMessages, 500);
 </script>

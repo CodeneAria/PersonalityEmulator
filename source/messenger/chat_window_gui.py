@@ -127,6 +127,20 @@ def get_voice_output_stop_flag() -> dict:
         return {"stop": voice_output_stop_flag}
 
 
+def get_and_clear_voice_output_stop_flag() -> dict:
+    """Return the current voice output stop flag and then clear it.
+
+    This is used by external GET requests: when a caller polls the flag
+    (e.g. the backend `MessageManager`), the flag should be consumed and
+    reset so the UI can reflect that the stop request has been handled.
+    """
+    global voice_output_stop_flag
+    with voice_output_stop_lock:
+        current = bool(voice_output_stop_flag)
+        voice_output_stop_flag = False
+        return {"stop": current}
+
+
 @flask_app.route("/")
 def index():
     # Serve the web UI from the `gui` folder next to this file
@@ -223,7 +237,9 @@ def voice_input_state_post():
 @flask_app.route('/voice_output_stop_flag', methods=['GET'])
 def voice_output_stop_flag_get():
     """Return the voice output stop flag state."""
-    return jsonify(get_voice_output_stop_flag()), RESPONSE_STATUS_CODE_SUCCESS
+    # When the flag is polled by an external consumer, consume it so the
+    # Stop Speak button can be reverted by the UI polling the same endpoint.
+    return jsonify(get_and_clear_voice_output_stop_flag()), RESPONSE_STATUS_CODE_SUCCESS
 
 
 @flask_app.route('/voice_output_stop_flag', methods=['POST'])
