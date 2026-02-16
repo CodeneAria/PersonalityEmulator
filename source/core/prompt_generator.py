@@ -48,10 +48,13 @@ class PromptGenerator:
         two newlines.
         """
         parts: list[str] = []
+
         parts.append("[世界観設定]")
         parts.append(self._read_file(self.world_path))
+
         parts.append("[人物設定]")
         parts.append(self._read_file(self.person_path))
+
         parts.append("[シーン設定]")
         parts.append(self._read_file(self.scene_path))
 
