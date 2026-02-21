@@ -16,7 +16,7 @@ import multiprocessing
 import simpleaudio as sa
 from flask import Flask, request, jsonify
 
-from config.communcation_settings import (
+from configuration.communcation_settings import (
     AUDIO_PLAYER_PORT,
     RESPONSE_STATUS_CODE_SUCCESS,
     RESPONSE_STATUS_CODE_ERROR,

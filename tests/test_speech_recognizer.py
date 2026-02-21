@@ -25,7 +25,7 @@ import pyaudio
 
 from source.voice.listener.speech_recognizer import SpeechRecognizer
 
-from config.person_settings import (
+from configuration.person_settings import (
     WHISPER_MODEL_NAME,
 )
 

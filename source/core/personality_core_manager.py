@@ -21,7 +21,7 @@ from llama_cpp import Llama
 
 from source.core.prompt_generator import PromptGenerator
 
-from config.person_settings import (
+from configuration.person_settings import (
     LLM_MODEL_PATH,
     LLM_MODEL_DOWNLOAD_PATH,
     LLM_N_CTX,

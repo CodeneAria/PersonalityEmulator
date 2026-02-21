@@ -13,7 +13,7 @@ import time
 import requests
 
 from source.voice.voice_manager import VoiceManager
-from config.communcation_settings import (
+from configuration.communcation_settings import (
     HOSTNAME,
     VOICEVOX_PORT,
     VOICE_GENERATOR_PORT,

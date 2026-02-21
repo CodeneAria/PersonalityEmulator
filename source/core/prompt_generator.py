@@ -6,7 +6,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 sys.path.append(str(Path(__file__).resolve().parents[2]))
 
-from config.person_settings import (
+from configuration.person_settings import (
     WORLD_INFO_PATH,
     PERSON_INFO_PATH,
     SCENE_SETTINGS_PATH,

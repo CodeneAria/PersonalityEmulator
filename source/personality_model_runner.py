@@ -21,7 +21,7 @@ from source.voice.voice_manager import VoiceManager
 from source.messenger.message_manager import MessageManager
 from source.messenger.message_source import MessageSource
 
-from config.person_settings import (
+from configuration.person_settings import (
     PERSONALITY_MODEL_NAME,
     WHISPER_TRANSCRIBE_PREFIX,
     PERSONALITY_CORE_SIGNATURE,
@@ -259,8 +259,6 @@ class PersonalityModelRunner:
                 pass
 
         return 0
-
-    # Processing of pending messages is delegated to MessageManager.process_pending_messages
 
     def _handle_voice_input_state(self, current_voice_active: bool) -> None:
         """Handle changes to voice input active state and process recognized speech.

@@ -12,7 +12,7 @@ import platform
 
 from source.messenger.message_manager import MessageManager
 
-from config.communcation_settings import (
+from configuration.communcation_settings import (
     MESSENGER_PORT,
     HOSTNAME,
 )

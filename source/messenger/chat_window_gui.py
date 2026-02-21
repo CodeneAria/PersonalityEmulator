@@ -19,7 +19,7 @@ from flask import Flask, request, jsonify, send_from_directory
 
 from source.messenger.message_source import MessageSource, normalize_source
 
-from config.communcation_settings import (
+from configuration.communcation_settings import (
     MESSENGER_PORT,
     HOSTNAME,
     RESPONSE_STATUS_CODE_SUCCESS,

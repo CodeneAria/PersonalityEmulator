@@ -17,14 +17,14 @@ import torch
 from faster_whisper import WhisperModel
 from flask import Flask, request, jsonify
 
-from config.communcation_settings import (
+from configuration.communcation_settings import (
     SPEECH_RECOGNIZER_PORT,
     HOSTNAME,
     RESPONSE_STATUS_CODE_SUCCESS,
     RESPONSE_STATUS_CODE_ERROR,
 )
 
-from config.person_settings import (
+from configuration.person_settings import (
     WHISPER_MODEL_NAME,
 )
 

@@ -15,14 +15,14 @@ import requests
 import subprocess
 import time
 
-from config.communcation_settings import (
+from configuration.communcation_settings import (
     AUDIO_QUERY_ENDPOINT,
     SYNTHESIS_ENDPOINT,
     HOSTNAME,
     VOICEVOX_PORT,
 )
 
-from config.person_settings import (
+from configuration.person_settings import (
     SPEAKER_ID,
     VOICE_SPEED_SCALE,
     VOICE_PITCH_SCALE,

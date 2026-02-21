@@ -13,7 +13,7 @@ import threading
 from typing import Optional, Union, Callable
 import requests
 
-from config.communcation_settings import (
+from configuration.communcation_settings import (
     MESSENGER_PORT,
     HOSTNAME,
     RESPONSE_STATUS_CODE_SUCCESS,

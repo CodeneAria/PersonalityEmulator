@@ -16,7 +16,7 @@ import requests
 
 sys.path.append(str(Path(__file__).resolve().parents[2]))
 
-from config.communcation_settings import (
+from configuration.communcation_settings import (
     VOICE_GENERATOR_PORT,
     AUDIO_PLAYER_PORT,
     SPEECH_RECOGNIZER_PORT,

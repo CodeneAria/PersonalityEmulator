@@ -28,11 +28,11 @@ import time
 import signal
 
 from source.voice.speaker.voicevox_communicator import VoicevoxCommunicator
-from config.communcation_settings import (
+from configuration.communcation_settings import (
     HOSTNAME,
     VOICEVOX_PORT,
 )
-from config.person_settings import (
+from configuration.person_settings import (
     VOICEVOX_DICTIONARY_PATH,
 )
 
