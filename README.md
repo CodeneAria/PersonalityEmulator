@@ -52,7 +52,7 @@ python run.py
 
 概要クラス図
 
-![概要クラス図](./document/system/概要クラス図.svg)
+![概要クラス図](./document/system/architecture-概要クラス図.svg)
 
 | Path | 説明 |
 | --- | --- |
