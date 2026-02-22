@@ -614,14 +614,14 @@ class VoiceManager:
             print(
                 "[VoiceManager] Voice output stop requested - clearing queues and stopping playback")
 
+            try:
+                self.clear_queue()
+            except Exception as e:
+                print(f"[VoiceManager] Failed to clear queue: {e}")
+
             if USE_YUKKURI:
                 httpx.post(YUKKURI_SPEAK_STOP_URL, timeout=5.0)
             else:
-                try:
-                    self.clear_queue()
-                except Exception as e:
-                    print(f"[VoiceManager] Failed to clear queue: {e}")
-
                 try:
                     self.stop_audio_playback()
                 except Exception as e:
