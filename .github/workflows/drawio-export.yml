@@ -6,8 +6,7 @@ on:
       - 'document/**/*.drawio'
       - 'document/**/*.drawio.xml'
     branches:
-      - main
-      - feature/create_reimu
+      - develop
 
 jobs:
   drawio-export:
@@ -28,7 +27,6 @@ jobs:
           format: svg
           output: .
           transparent: true
-          keep-index: false
 
       - name: Commit and Push changes
         uses: stefanzweifel/git-auto-commit-action@v5
