@@ -1,0 +1,37 @@
+name: Export Draw.io Sheets to SVG
+
+on:
+  push:
+    paths:
+      - 'document/**/*.drawio'
+      - 'document/**/*.drawio.xml'
+    branches:
+      - main
+      - feature/create_reimu
+
+jobs:
+  drawio-export:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Export draw.io files to svg
+        uses: rlespinasse/drawio-export-action@v2
+        with:
+          path: document
+          format: svg
+          output: document
+          transparent: true
+          keep-index: false
+
+      - name: Commit and Push changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "docs: 自動書き出し: draw.io 各シートのSVG画像を更新 [skip ci]"
+          file_pattern: 'document/**/*.svg'
