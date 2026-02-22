@@ -54,28 +54,26 @@ python run.py
 
 ![概要クラス図](./document/system/概要クラス図.svg)
 
-```
-run.py                          # エントリポイント
-source/
-  personality_model_runner.py   # 各コンポーネントを統合するメインランナー
-  core/
-    personality_core_manager.py # LLM のライフサイクル管理・ストリーミング生成
-    prompt_generator.py         # システムプロンプト生成
-  messenger/
-    message_manager.py          # チャットウィンドウ管理（サブプロセス制御）
-    chat_window_gui.py          # Flask + Tkinter によるチャット UI
-  voice/
-    voice_manager.py            # 音声入出力の統合管理
-    listener/
-      speech_recognizer.py      # 音声認識（Whisper）
-    speaker/
-      voice_generator.py        # 音声生成キュー管理
-      voicevox_communicator.py  # VOICEVOX API クライアント
-configuration/                  # モデル・キャラクター・通信設定
-personality/                    # キャラクター設定ファイル（人物情報・世界観など）
-llm/                            # GGUF モデルファイル置き場
-docker/                         # Dev Container 用 Docker 設定
-```
+| Path | 説明 |
+| --- | --- |
+| `run.py` | エントリポイント |
+| `source/` | ソースコード |
+| `source/personality_model_runner.py` | 各コンポーネントを統合するメインランナー |
+| `source/core/` | コア（LLM 管理・プロンプト生成） |
+| `source/core/personality_core_manager.py` | LLM のライフサイクル管理・ストリーミング生成 |
+| `source/core/prompt_generator.py` | システムプロンプト生成 |
+| `source/messenger/` | チャット関連（UI/メッセージ管理） |
+| `source/messenger/message_manager.py` | チャットウィンドウ管理（サブプロセス制御） |
+| `source/messenger/chat_window_gui.py` | Flask + Tkinter によるチャット UI |
+| `source/voice/` | 音声入出力関連 |
+| `source/voice/voice_manager.py` | 音声入出力の統合管理 |
+| `source/voice/listener/speech_recognizer.py` | 音声認識（Whisper） |
+| `source/voice/speaker/voice_generator.py` | 音声生成キュー管理 |
+| `source/voice/speaker/voicevox_communicator.py` | VOICEVOX API クライアント |
+| `configuration/` | モデル・キャラクター・通信設定 |
+| `personality/` | キャラクター設定ファイル（人物情報・世界観など） |
+| `llm/` | GGUF モデルファイル置き場 |
+| `docker/` | Dev Container 用 Docker 設定 |
 
 ## ライセンス
 
