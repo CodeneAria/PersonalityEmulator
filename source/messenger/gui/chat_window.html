@@ -149,12 +149,11 @@ function setVoiceActive(active) {
   });
 }
 
-// Mouse events
-voiceBtn.addEventListener('mousedown', () => setVoiceActive(true));
-voiceBtn.addEventListener('mouseleave', () => setVoiceActive(false));
+// Toggle on click
+voiceBtn.addEventListener('click', () => setVoiceActive(!voiceActive));
 
 // Touch events for mobile
-voiceBtn.addEventListener('touchstart', (e) => { e.preventDefault(); setVoiceActive(true); }, { passive: false });
+voiceBtn.addEventListener('touchstart', (e) => { e.preventDefault(); setVoiceActive(!voiceActive); }, { passive: false });
 
 // Stop speak button: active only while pressed (mouse or touch)
 const stopBtn = document.getElementById('stop-btn');
@@ -191,16 +190,7 @@ stopBtn.addEventListener('click', () => {
 // duplicate events on some devices).
 stopBtn.addEventListener('touchstart', (e) => { e.preventDefault(); setStopActive(!stopActive); }, { passive: false });
 
-// Global mouseup and touchend handlers for both buttons
-document.addEventListener('mouseup', () => {
-  setVoiceActive(false);
-});
-document.addEventListener('touchend', () => {
-  setVoiceActive(false);
-});
-document.addEventListener('touchcancel', () => {
-  setVoiceActive(false);
-});
+// (No global mouseup/touchend needed; voice input is now a toggle)
 
 // Poll server for stop flag so the UI can revert when the flag is consumed
 // by the backend. This keeps the button visually active until the backend
