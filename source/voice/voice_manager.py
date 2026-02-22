@@ -13,6 +13,7 @@ import threading
 import queue
 from typing import Optional, Union
 import requests
+import httpx
 
 sys.path.append(str(Path(__file__).resolve().parents[2]))
 
@@ -24,6 +25,8 @@ from configuration.communcation_settings import (
     RESPONSE_STATUS_CODE_SUCCESS,
     RESPONSE_STATUS_CODE_NOT_FOUND,
     RESPONSE_STATUS_CODE_ERROR,
+    USE_YUKKURI,
+    YUKKURI_SPEAK_URL,
 )
 
 
@@ -655,14 +658,15 @@ class VoiceManager:
 
     def generate_voice(self, text: Union[str, list[str]]) -> bool:
         """Queue text for async voice generation and playback.
-
         Args:
-            text: Single text string or list of text strings.
-
-        Returns:
-            Always returns True (queuing is non-blocking).
+            text: Single text string or list of text strings to generate voice for.
         """
-        self.text_queue.put(text)
+        if USE_YUKKURI:
+            httpx.post(YUKKURI_SPEAK_URL, json={
+                "text": text}, timeout=10.0)
+        else:
+            self.text_queue.put(text)
+
         return True
 
     def get_audio(self) -> Optional[bytes]:
