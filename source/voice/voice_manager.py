@@ -27,6 +27,7 @@ from configuration.communcation_settings import (
     RESPONSE_STATUS_CODE_ERROR,
     USE_YUKKURI,
     YUKKURI_SPEAK_URL,
+    YUKKURI_SPEAK_STOP_URL,
 )
 
 
@@ -613,17 +614,18 @@ class VoiceManager:
             print(
                 "[VoiceManager] Voice output stop requested - clearing queues and stopping playback")
 
-            # Clear voice generation queues
-            try:
-                self.clear_queue()
-            except Exception as e:
-                print(f"[VoiceManager] Failed to clear queue: {e}")
+            if USE_YUKKURI:
+                httpx.post(YUKKURI_SPEAK_STOP_URL, timeout=5.0)
+            else:
+                try:
+                    self.clear_queue()
+                except Exception as e:
+                    print(f"[VoiceManager] Failed to clear queue: {e}")
 
-            # Stop audio playback
-            try:
-                self.stop_audio_playback()
-            except Exception as e:
-                print(f"[VoiceManager] Failed to stop audio playback: {e}")
+                try:
+                    self.stop_audio_playback()
+                except Exception as e:
+                    print(f"[VoiceManager] Failed to stop audio playback: {e}")
 
         # Update previous state
         self._prev_voice_output_stop_flag = current_stop_flag
