@@ -42,8 +42,12 @@ VOICEVOXは、Dockerイメージ作成のタイミングでWebからダウンロ
 
 ### 3. 実行
 
+Python仮想環境はDockerイメージ作成時に「/opt/venv_python_CodeneAria/bin」にインストールしています。
+
+仮想環境を有効化し、以下のコマンドを実行します。
+
 ```bash
-python run.py
+python3 run.py
 ```
 
 起動後、ターミナルに表示される URL（例: `http://localhost:50050`）をブラウザで開くとチャットウィンドウが表示されます。
